@@ -18,3 +18,15 @@ storage/memory_files/*.json
 !storage/logs/.gitkeep
 !storage/memory_files/.gitkeep
 !storage/backups/.gitkeep
+
+.env
+*.db
+*.sqlite
+*.log
+backend/plugins/tools/*/.cache/
+storage/backups/
+storage/logs/*
+storage/uploads/*
+storage/memory_files/*
+!storage/logs/.gitkeep
+!storage/uploads/.gitkeep
