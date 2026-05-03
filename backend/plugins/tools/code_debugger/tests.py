@@ -32,7 +32,12 @@ def main():
     read_result = run({"action": "read_file", "project_path": str(test_project), "target_file": "frontend.jsx"})
     assert read_result["ok"] is True
 
-    delete_result = run({"action": "delete_file", "project_path": str(test_project), "target_file": "frontend.jsx", "confirmation": "OK"})
+    delete_result = run({
+        "action": "delete_file",
+        "project_path": str(test_project),
+        "target_file": "frontend.jsx",
+        "approval_text": f"APPROVE ACTION: code_debugger delete_file {test_project} frontend.jsx",
+    })
     assert delete_result["ok"] is True
 
     shutil.rmtree(test_project)

@@ -4,6 +4,6 @@
   "filesystem_write": true,
   "filesystem_delete": true,
   "destructive": true,
-  "process_spawn": true,
+  "process_spawn": false,
   "allowed_roots": ["/home/s-ndrlm-r/Projects"]
 }

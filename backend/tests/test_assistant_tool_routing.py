@@ -43,6 +43,8 @@ class FakeRunner:
         pass
 
     def run(self, name: str, args: dict, *, confirmed: bool = False, admin_password: str | None = None) -> dict:
+        if name == "web_search":
+            return {"tool_name": name, "result": FakeWebSearch.run(args), "executed": True}
         FakeRunner.calls.append((name, args, confirmed))
         action = args["action"]
         if action == "tree":
@@ -124,7 +126,7 @@ def test_delete_requires_confirmation_without_provider_or_plugin(
     assert response.metadata["requires_confirmation"] is True
     assert response.metadata["executed"] is False
     assert response.metadata["pending_action_created"] is True
-    assert "APPROVE DELETE" in response.message
+    assert "APPROVE ACTION: filesystem_manager delete" in response.message
     assert get_pending_action(response.conversation_id) is not None
     assert FakeProvider.called is False
     assert FakeRunner.calls == []
@@ -163,7 +165,7 @@ def test_approval_without_pending_action_does_not_execute(
     _patch_chat_dependencies(monkeypatch)
 
     response = asyncio.run(
-        assistant.chat("APPROVE DELETE: /home/s-ndrlm-r/Projects/Jarvis/Jarvis.txt")
+        assistant.chat("APPROVE ACTION: filesystem_manager delete /home/s-ndrlm-r/Projects/Jarvis/Jarvis.txt")
     )
 
     assert "no pending protected action" in response.message
@@ -183,7 +185,7 @@ def test_wrong_approval_phrase_does_not_execute_and_keeps_pending(
 
     response = asyncio.run(
         assistant.chat(
-            "APPROVE DELETE: /home/s-ndrlm-r/Projects/Jarvis/Wrong.txt",
+            "APPROVE ACTION: filesystem_manager delete /home/s-ndrlm-r/Projects/Jarvis/Wrong.txt",
             conversation_id=first.conversation_id,
         )
     )
@@ -281,7 +283,7 @@ def test_direct_api_live_query_returns_tool_answer_without_provider(
     assert response.metadata["documents_count"] == 0
     assert response.metadata["ollama_grounded"] is False
     assert FakeProvider.called is False
-    assert FakeWebSearch.calls == [{"query": message}]
+    assert FakeWebSearch.calls == [{"action": "search", "query": message}]
     assert FakeRunner.calls == []
 
 
@@ -318,7 +320,7 @@ def test_trusted_rag_query_uses_grounded_ollama(monkeypatch: pytest.MonkeyPatch,
     assert response.metadata["ollama_grounded"] is True
     assert "Answer ONLY using provided text" in FakeProvider.last_message
     assert "Brent crude oil prices rose" in FakeProvider.last_message
-    assert FakeWebSearch.calls == [{"query": "latest oil prices"}]
+    assert FakeWebSearch.calls == [{"action": "search", "query": "latest oil prices"}]
 
 
 def test_trusted_rag_insufficient_data_starts_teaching_flow(
@@ -368,7 +370,7 @@ def test_web_search_failure_returns_strict_unverified_response(
 
     assert response.message == "I could not verify this from trusted sources."
     assert FakeProvider.called is False
-    assert FakeWebSearch.calls == [{"query": "current football scores"}]
+    assert FakeWebSearch.calls == [{"action": "search", "query": "current football scores"}]
     assert FakeRunner.calls == []
 
 
@@ -465,5 +467,4 @@ def _patch_chat_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     FakeWebSearch.result = {}
     monkeypatch.setattr("core.assistant.PluginLoader", FakeLoader)
     monkeypatch.setattr("core.assistant.PluginRunner", FakeRunner)
-    monkeypatch.setattr("core.assistant.web_search_run", FakeWebSearch.run)
     monkeypatch.setattr("core.assistant.get_provider", lambda *args, **kwargs: FakeProvider())

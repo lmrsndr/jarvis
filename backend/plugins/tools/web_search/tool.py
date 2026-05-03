@@ -30,9 +30,9 @@ except Exception:  # pragma: no cover
     BeautifulSoup = None
 
 PLUGIN_NAME = "web_search"
-PLUGIN_DESCRIPTION = "Trusted-source RAG document collector with direct Open-Meteo weather, teachable source categories, cleaned extraction, tables/lists, chunking, and relevance scoring."
+PLUGIN_DESCRIPTION = "Trusted-source RAG document collector with direct Open-Meteo weather, teachable source categories, caching, cleaned text extraction, tables/lists, and relevance scoring."
 PLUGIN_VERSION = "0.7.1"
-PLUGIN_PERMISSIONS = "safe"
+PLUGIN_PERMISSIONS = "medium"
 
 BASE_DIR = os.path.dirname(__file__)
 SOURCES_FILE = os.path.join(BASE_DIR, "web_sources.json")
@@ -1144,3 +1144,7 @@ def run(args: Dict[str, Any]) -> Dict[str, Any]:
         return _trusted_rag_response(query, category, categories, max_results, ttl, no_cache)
 
     return _needs_sources_response(query, None, "No trusted source category matched this question.")
+
+
+def healthcheck() -> Dict[str, Any]:
+    return {"ok": True, "plugin": PLUGIN_NAME, "version": PLUGIN_VERSION, "sources_file": SOURCES_FILE}

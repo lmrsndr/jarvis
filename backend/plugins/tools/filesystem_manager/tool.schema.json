@@ -75,6 +75,27 @@
     },
     "required": ["action", "path"]
   },
+  "action_requirements": {
+    "rename": {"required": ["destination"]},
+    "search_text": {"required": ["query"]},
+    "create_file": {"required": ["content"]},
+    "append_file": {"required": ["content"]},
+    "overwrite_file": {"required": ["content"]}
+  },
+  "action_risk": {
+    "list": "safe",
+    "tree": "safe",
+    "read": "safe",
+    "info": "safe",
+    "search_names": "safe",
+    "search_text": "safe",
+    "create_file": "medium",
+    "create_folder": "medium",
+    "append_file": "medium",
+    "overwrite_file": "dangerous",
+    "rename": "dangerous",
+    "delete": "dangerous"
+  },
   "output_schema": {
     "type": "object"
   },

@@ -5,8 +5,8 @@ Purpose:
 - Read/audit projects under /home/s-ndrlm-r/Projects
 - Map frontend/backend/API relationships
 - Propose safe fixes
-- Apply limited fixes only when confirmation == "OK"
-- Delete files only when confirmation == "OK"
+- Apply limited fixes only after host approval
+- Delete files only after host approval
 
 Expected entrypoint:
     run(args: dict) -> dict
@@ -20,14 +20,16 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 ALLOWED_ROOT = Path("/home/s-ndrlm-r/Projects").resolve()
-CONFIRMATION_PHRASE = "OK"
+PLUGIN_NAME = "code_debugger"
+PLUGIN_DESCRIPTION = "Reads and audits local projects under /home/s-ndrlm-r/Projects, maps frontend/backend/API relationships, proposes fixes, and applies write/delete actions only after explicit host confirmation."
+PLUGIN_VERSION = "1.0.1"
+PLUGIN_PERMISSIONS = "medium"
 MAX_FILE_BYTES = 2_000_000
 MAX_READ_FILE_BYTES = 300_000
 
@@ -135,6 +137,13 @@ def _write_text_with_backup(path: Path, new_text: str) -> Dict[str, str]:
         shutil.copy2(path, backup)
     path.write_text(new_text, encoding="utf-8")
     return {"file": str(path), "backup": str(backup)}
+
+
+def _approval_granted(args: Dict[str, Any]) -> bool:
+    if bool(args.get("admin_confirmed")):
+        return True
+    approval_text = str(args.get("approval_text") or "").strip()
+    return approval_text.startswith(f"APPROVE ACTION: {PLUGIN_NAME} ")
 
 
 def _make_diff(old: str, new: str, file_label: str) -> str:
@@ -421,7 +430,7 @@ def _audit(project: Path) -> Dict[str, Any]:
         "issues": issue_dicts,
         "notes": [
             "This is a static audit. It flags likely issues but does not prove runtime behaviour.",
-            "Use preview_fix before apply_fix. apply_fix and delete_file require confirmation exactly equal to OK.",
+            "Use preview_fix before apply_fix. apply_fix and delete_file require host confirmation.",
         ],
     }
 
@@ -444,11 +453,11 @@ def _preview_fix(project: Path, issue_id: str) -> Dict[str, Any]:
     }
 
 
-def _apply_fix(project: Path, issue_id: str, confirmation: str) -> Dict[str, Any]:
-    if confirmation != CONFIRMATION_PHRASE:
+def _apply_fix(project: Path, issue_id: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    if not _approval_granted(args):
         return {
             "ok": False,
-            "error": "Write permission denied. confirmation must be exactly OK.",
+            "error": "Write permission denied. APPROVE ACTION confirmation is required.",
         }
     preview = _preview_fix(project, issue_id)
     if not preview.get("ok"):
@@ -463,9 +472,9 @@ def _apply_fix(project: Path, issue_id: str, confirmation: str) -> Dict[str, Any
     return {"ok": False, "error": "No automatic fix templates are enabled yet."}
 
 
-def _delete_file(project: Path, target_file: str, confirmation: str) -> Dict[str, Any]:
-    if confirmation != CONFIRMATION_PHRASE:
-        return {"ok": False, "error": "Delete permission denied. confirmation must be exactly OK."}
+def _delete_file(project: Path, target_file: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    if not _approval_granted(args):
+        return {"ok": False, "error": "Delete permission denied. APPROVE ACTION confirmation is required."}
     target = _safe_target_path(project, target_file)
     if not target.exists():
         return {"ok": False, "error": f"Target file does not exist: {target_file}"}
@@ -526,9 +535,9 @@ def run(args: Dict[str, Any]) -> Dict[str, Any]:
     if action == "preview_fix":
         return _preview_fix(project, args.get("issue_id", ""))
     if action == "apply_fix":
-        return _apply_fix(project, args.get("issue_id", ""), args.get("confirmation", ""))
+        return _apply_fix(project, args.get("issue_id", ""), args)
     if action == "delete_file":
-        return _delete_file(project, args.get("target_file", ""), args.get("confirmation", ""))
+        return _delete_file(project, args.get("target_file", ""), args)
     if action == "read_file":
         return _read_file(project, args.get("target_file", ""))
     if action == "list_tree":
@@ -539,3 +548,7 @@ def run(args: Dict[str, Any]) -> Dict[str, Any]:
         "error": f"Unknown action: {action}",
         "supported_actions": ["audit", "preview_fix", "apply_fix", "delete_file", "read_file", "list_tree"],
     }
+
+
+def healthcheck() -> Dict[str, Any]:
+    return {"ok": True, "plugin": PLUGIN_NAME, "version": PLUGIN_VERSION, "allowed_root": str(ALLOWED_ROOT)}

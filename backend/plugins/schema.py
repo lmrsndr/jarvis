@@ -17,6 +17,8 @@ class PluginSchema(BaseModel):
     intents: list[str] = Field(default_factory=list)
     execution_mode: ExecutionMode = "direct_answer"
     risk_level: PermissionLevel | None = None
+    action_requirements: dict[str, Any] = Field(default_factory=dict)
+    action_risk: dict[str, PermissionLevel] = Field(default_factory=dict)
     entry_file: str = "tool.py"
     entry_function: str = "run"
     permissions: PermissionLevel = "safe"

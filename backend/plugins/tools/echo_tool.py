@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 
-class Tool:
-    name = "echo"
-    description = "Return the input text unchanged."
-
-    def run(self, text: str = "") -> dict[str, str]:
-        return {"text": text}
+LEGACY_NOTE = (
+    "This file is intentionally not a Jarvis plugin. The installed echo plugin "
+    "lives in backend/plugins/tools/echo_tool/."
+)

@@ -217,7 +217,28 @@ class InputBuilder:
             if value is not None:
                 args[field] = value
 
-        missing = [field for field in self.required if field not in args or args[field] in {"", None}]
+        required = list(self.required)
+        any_required: list[list[str]] = []
+        action = str(args.get("action") or "")
+        action_requirements = self.plugin.get("action_requirements") or {}
+        if action and isinstance(action_requirements, dict):
+            requirement = action_requirements.get(action) or {}
+            if isinstance(requirement, dict):
+                required.extend(str(item) for item in requirement.get("required", []))
+                any_required.extend(
+                    [str(item) for item in group]
+                    for group in requirement.get("any_required", [])
+                    if isinstance(group, list)
+                )
+
+        missing = []
+        for field in required:
+            if field not in args or args[field] in {"", None}:
+                missing.append(field)
+        for group in any_required:
+            if not any(field in args and args[field] not in {"", None, []} for field in group):
+                missing.append(" or ".join(group))
+        missing = _dedupe(missing)
         return args, missing
 
     def _extract_field(self, field: str, definition: dict[str, Any], message: str, normalized: str) -> Any:
@@ -245,8 +266,11 @@ class InputBuilder:
 class PermissionEngine:
     @staticmethod
     def requires_confirmation(plugin: dict[str, Any], args: dict[str, Any]) -> bool:
-        risk = str(plugin.get("risk_level") or plugin.get("permissions") or "safe")
         action = str(args.get("action") or "")
+        action_risk = plugin.get("action_risk") or {}
+        if isinstance(action_risk, dict) and action in action_risk:
+            return RISK_ORDER.get(str(action_risk[action]), 0) > RISK_ORDER["safe"]
+        risk = str(plugin.get("risk_level") or plugin.get("permissions") or "safe")
         declared = plugin.get("declared_permissions") or {}
         return (
             RISK_ORDER.get(risk, 0) > RISK_ORDER["safe"]
@@ -332,8 +356,23 @@ def _infer_action(normalized: str, enum_values: list[Any]) -> str | None:
 
 def _action_summary(args: dict[str, Any]) -> str:
     action = str(args.get("action") or "run")
-    target = str(args.get("path") or args.get("project_path") or args.get("target_file") or "").strip()
-    return f"{action} {target}".strip()
+    target_parts = [
+        str(args.get(key) or "").strip()
+        for key in ("path", "project_path", "target_file", "destination", "issue_id", "category")
+        if str(args.get(key) or "").strip()
+    ]
+    return " ".join([action, *target_parts]).strip()
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    output: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        output.append(value)
+    return output
 
 
 def _reject_core_rewrite(args: dict[str, Any]) -> None:

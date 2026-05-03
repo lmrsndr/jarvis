@@ -4,7 +4,7 @@ import re
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-from plugins.universal import UniversalIntentRouter
+from plugins.universal import PermissionEngine, UniversalIntentRouter
 
 
 PROJECTS_PATH = "~/Projects"
@@ -112,7 +112,7 @@ def route_tool_request(
             requires_confirmation=action in DESTRUCTIVE_ACTIONS,
         )
         if action in DESTRUCTIVE_ACTIONS:
-            route["approval_phrase"] = _approval_phrase(action, str(args["path"]))
+            route["approval_phrase"] = PermissionEngine.approval_phrase("filesystem_manager", args)
         return route
 
     if _is_web_request(normalized):

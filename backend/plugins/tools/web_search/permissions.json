@@ -2,8 +2,8 @@
   "network": true,
   "filesystem_read": true,
   "filesystem_write": true,
-  "filesystem_delete": false,
-  "destructive": false,
+  "filesystem_delete": true,
+  "destructive": true,
   "process_spawn": false,
   "allowed_files": ["web_sources.json", ".cache"]
 }

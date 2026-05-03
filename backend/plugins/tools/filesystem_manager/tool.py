@@ -89,8 +89,10 @@ def _approval_required(action: str, path: Path, args: dict[str, Any]) -> None:
     else:
         expected = ""
 
-    if approval_text != expected:
-        raise PermissionError(f"Approval phrase mismatch. Required exactly: {expected}")
+    universal_expected = f"APPROVE ACTION: {PLUGIN_NAME} {action} {args.get('path') or path}"
+    universal_resolved_expected = f"APPROVE ACTION: {PLUGIN_NAME} {action} {path}"
+    if approval_text not in {expected, universal_expected, universal_resolved_expected}:
+        raise PermissionError(f"Approval phrase mismatch. Required exactly: {universal_expected}")
 
 
 def _backup_path(path: Path) -> Path:
@@ -305,3 +307,7 @@ def run(args: dict[str, Any]) -> dict[str, Any]:
         return {"error": str(exc), "action": action}
 
     return {"error": "Unhandled action."}
+
+
+def healthcheck() -> dict[str, Any]:
+    return {"ok": True, "plugin": PLUGIN_NAME, "version": PLUGIN_VERSION, "allowed_root": str(_allowed_root())}

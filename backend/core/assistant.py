@@ -20,10 +20,6 @@ from core.tool_router import route_tool_request
 from memory.db import MemoryDatabase
 from memory.recall import DEFAULT_RECALL_LIMIT, decide_memory_use, recall_context
 from memory.vector_store import LocalVectorStore
-try:
-    from backend.plugins.tools.web_search.tool import run as web_search_run
-except ModuleNotFoundError:  # Tests and local backend runs use backend/ as import root.
-    from plugins.tools.web_search.tool import run as web_search_run
 from plugins.loader import PluginLoader, PluginNotFoundError, PluginValidationError
 from plugins.runner import PluginPermissionError, PluginRunner
 
@@ -304,9 +300,13 @@ class Assistant:
     ) -> AssistantResponse | None:
         logger.info("web_search triggered")
         try:
-            tool_result = web_search_run({"query": message})
+            run_result = PluginRunner(loader=plugin_loader or PluginLoader(), settings=self.settings).run(
+                "web_search",
+                {"action": "search", "query": message},
+            )
+            tool_result = run_result["result"]
             executed = True
-        except Exception as exc:
+        except (PluginNotFoundError, PluginValidationError, PluginPermissionError) as exc:
             tool_result = {"ok": False, "error": str(exc)}
             executed = False
 
@@ -495,15 +495,18 @@ class Assistant:
                     [],
                     {"provider": selected_provider, "learning_mode": "cancelled", "model_used_after_tool": False},
                 )
-            result = web_search_run(
+            run_result = PluginRunner(settings=self.settings).run(
+                "web_search",
                 {
                     "action": "add_source_category",
                     "category": state["category"],
                     "description": "User-defined trusted sources",
                     "sources": state["sources"],
                     "keywords": state["keywords"],
-                }
+                },
+                confirmed=True,
             )
+            result = run_result["result"]
             _LEARNING_STATES.pop(conversation_id, None)
             if result.get("ok") is True:
                 reply = "Sources saved. I will use these for future queries."

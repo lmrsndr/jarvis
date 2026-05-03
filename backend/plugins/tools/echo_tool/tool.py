@@ -9,3 +9,7 @@ PLUGIN_PERMISSIONS = "safe"
 
 def run(args: dict) -> dict:
     return {"text": str(args.get("text", ""))}
+
+
+def healthcheck() -> dict:
+    return {"ok": True, "plugin": PLUGIN_NAME, "version": PLUGIN_VERSION}

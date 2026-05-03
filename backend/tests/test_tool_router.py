@@ -91,7 +91,7 @@ def test_delete_file_requires_confirmation() -> None:
     assert route["tool_name"] == "filesystem_manager"
     assert route["args"]["action"] == "delete"
     assert route["requires_confirmation"] is True
-    assert "APPROVE DELETE" in route["approval_phrase"]
+    assert route["approval_phrase"].startswith("APPROVE ACTION: filesystem_manager delete")
 
 
 def test_path_escape_is_blocked() -> None:

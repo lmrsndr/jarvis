@@ -75,7 +75,6 @@ def run_plugin(name: str, request: ToolRunRequest, settings: Settings = Depends(
     if plugin is None:
         write_audit_event("plugin.run_denied", {"tool_name": name, "reason": "not_found"})
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Plugin not found: {name}")
-    _verify_run_permission(plugin.permissions, request, settings)
 
     try:
         write_audit_event(

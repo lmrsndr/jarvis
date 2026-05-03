@@ -2,7 +2,7 @@
   "name": "code_debugger",
   "tool_name": "code_debugger",
   "version": "1.0.1",
-  "description": "Reads and audits local projects under /home/s-ndrlm-r/Projects, maps frontend/backend/API relationships, proposes fixes, and applies write/delete actions only after explicit OK confirmation.",
+  "description": "Reads and audits local projects under /home/s-ndrlm-r/Projects, maps frontend/backend/API relationships, proposes fixes, and applies write/delete actions only after explicit host confirmation.",
   "intents": [
     "audit a local code project",
     "debug code",
@@ -40,7 +40,15 @@
       },
       "confirmation": {
         "type": "string",
-        "description": "Must be exactly OK for write/delete actions."
+        "description": "Deprecated. Use approval_text from the host approval flow."
+      },
+      "admin_confirmed": {
+        "type": "boolean",
+        "description": "Host app sets true only after approval."
+      },
+      "approval_text": {
+        "type": "string",
+        "description": "Exact APPROVE ACTION phrase supplied by the host approval flow."
       },
       "max_files": {
         "type": "integer",
@@ -49,6 +57,20 @@
       }
     },
     "required": ["action", "project_path"]
+  },
+  "action_requirements": {
+    "preview_fix": {"required": ["issue_id"]},
+    "apply_fix": {"required": ["issue_id"]},
+    "read_file": {"required": ["target_file"]},
+    "delete_file": {"required": ["target_file"]}
+  },
+  "action_risk": {
+    "audit": "safe",
+    "preview_fix": "safe",
+    "read_file": "safe",
+    "list_tree": "safe",
+    "apply_fix": "medium",
+    "delete_file": "dangerous"
   },
   "output_schema": {
     "type": "object"

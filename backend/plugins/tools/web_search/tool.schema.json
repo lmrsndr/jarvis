@@ -12,10 +12,10 @@
     "add trusted source category"
   ],
   "execution_mode": "grounded_answer",
-  "risk_level": "safe",
+  "risk_level": "medium",
   "entry_file": "tool.py",
   "entry_function": "run",
-  "permissions": "safe",
+  "permissions": "medium",
   "input_schema": {
     "type": "object",
     "properties": {
@@ -30,6 +30,18 @@
       "location": {"type": "string", "description": "Optional location for weather queries."},
       "no_cache": {"type": "boolean", "default": false}
     }
+  },
+  "action_requirements": {
+    "search": {"required": ["query"]},
+    "add_source_category": {"required": ["category"], "any_required": [["sources", "rss"]]},
+    "remove_source_category": {"required": ["category"]}
+  },
+  "action_risk": {
+    "search": "safe",
+    "list_source_categories": "safe",
+    "add_source_category": "medium",
+    "remove_source_category": "medium",
+    "clear_cache": "medium"
   },
   "output_schema": {
     "type": "object",
@@ -51,7 +63,7 @@
   },
   "allowed_changes": [],
   "forbidden_actions": ["untrusted_search_engine_fallback"],
-  "requires_password_for": [],
+  "requires_password_for": ["remove_source_category", "clear_cache"],
   "tests": ["tests/test_tool.py"],
   "enabled": true
 }
