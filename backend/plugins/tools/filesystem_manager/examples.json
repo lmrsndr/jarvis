@@ -1,0 +1,20 @@
+{
+  "examples": [
+    {
+      "prompt": "Show me the tree for the Jarvis project",
+      "args": {"action": "tree", "path": "~/Projects/Jarvis", "max_depth": 4}
+    },
+    {
+      "prompt": "Read README.md from the Jarvis project",
+      "args": {"action": "read", "path": "~/Projects/Jarvis/README.md"}
+    },
+    {
+      "prompt": "Create a text file named notes in my Projects folder",
+      "args": {"action": "create_file", "path": "~/Projects/notes.txt", "content": ""}
+    },
+    {
+      "prompt": "Delete old.txt from my Projects folder",
+      "args": {"action": "delete", "path": "~/Projects/old.txt"}
+    }
+  ]
+}

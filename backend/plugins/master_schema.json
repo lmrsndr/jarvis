@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Jarvis Universal Tool Plugin Schema",
+  "type": "object",
+  "required": ["name", "tool_name", "version", "description", "intents", "input_schema", "execution_mode", "risk_level"],
+  "additionalProperties": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_\\-]+$"
+    },
+    "tool_name": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_\\-]+$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "intents": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "minItems": 1
+    },
+    "input_schema": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {"const": "object"},
+        "properties": {"type": "object"},
+        "required": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": true
+    },
+    "execution_mode": {
+      "type": "string",
+      "enum": ["direct_answer", "grounded_answer", "actuate", "dangerous_write"]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["safe", "medium", "dangerous"]
+    },
+    "permissions": {
+      "type": "string",
+      "enum": ["safe", "medium", "dangerous"]
+    },
+    "entry_file": {
+      "type": "string",
+      "default": "tool.py"
+    },
+    "entry_function": {
+      "type": "string",
+      "default": "run"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

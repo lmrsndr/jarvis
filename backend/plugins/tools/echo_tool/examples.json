@@ -1,0 +1,12 @@
+{
+  "examples": [
+    {
+      "prompt": "Echo hello world",
+      "args": {"text": "hello world"}
+    },
+    {
+      "prompt": "Test the echo plugin with this sentence",
+      "args": {"text": "Test the echo plugin with this sentence"}
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "name": "web_search",
+  "tool_name": "web_search",
+  "version": "0.7.1",
+  "description": "Trusted-source RAG document collector with direct Open-Meteo weather, teachable source categories, caching, cleaned text extraction, tables/lists, and relevance scoring.",
+  "intents": [
+    "search trusted web sources",
+    "get current information",
+    "get latest news",
+    "check weather",
+    "answer from trusted source documents",
+    "add trusted source category"
+  ],
+  "execution_mode": "grounded_answer",
+  "risk_level": "safe",
+  "entry_file": "tool.py",
+  "entry_function": "run",
+  "permissions": "safe",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": {"type": "string", "description": "Search query or question."},
+      "max_results": {"type": "integer", "default": 5, "minimum": 1, "maximum": 12},
+      "action": {"type": "string", "enum": ["search", "add_source_category", "list_source_categories", "remove_source_category", "clear_cache"], "default": "search"},
+      "category": {"type": "string", "description": "Source category name for teachable source actions."},
+      "description": {"type": "string"},
+      "sources": {"type": "array", "items": {"type": "string"}},
+      "rss": {"type": "array", "items": {"type": "string"}},
+      "keywords": {"type": "array", "items": {"type": "string"}},
+      "location": {"type": "string", "description": "Optional location for weather queries."},
+      "no_cache": {"type": "boolean", "default": false}
+    }
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "ok": {"type": "boolean"},
+      "mode": {"type": "string", "enum": ["trusted_rag", "direct_api", "needs_sources"]},
+      "query": {"type": "string"},
+      "handler": {"type": "string"},
+      "answer": {"type": "string"},
+      "confidence": {"type": "number"},
+      "confidence_label": {"type": "string"},
+      "documents": {"type": "array"},
+      "results": {"type": "array"},
+      "sources": {"type": "array"},
+      "error": {"type": "string"},
+      "teach_request": {"type": "boolean"},
+      "suggested_action": {"type": "object"}
+    }
+  },
+  "allowed_changes": [],
+  "forbidden_actions": ["untrusted_search_engine_fallback"],
+  "requires_password_for": [],
+  "tests": ["tests/test_tool.py"],
+  "enabled": true
+}

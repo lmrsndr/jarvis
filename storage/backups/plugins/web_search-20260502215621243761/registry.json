@@ -1,0 +1,20 @@
+{
+  "plugins": [
+    {
+      "tool_name": "code_debugger",
+      "enabled": true
+    },
+    {
+      "tool_name": "echo_tool",
+      "enabled": true
+    },
+    {
+      "tool_name": "filesystem_manager",
+      "enabled": true
+    },
+    {
+      "tool_name": "web_search",
+      "enabled": true
+    }
+  ]
+}

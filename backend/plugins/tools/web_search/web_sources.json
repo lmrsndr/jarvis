@@ -1,0 +1,70 @@
+{
+  "strict_mode": true,
+  "cache_ttl_seconds": 900,
+  "categories": {
+    "general_news": {
+      "description": "Trusted UK and world news from established publishers.",
+      "sources": [
+        "https://www.bbc.co.uk/news",
+        "https://www.theguardian.com/uk"
+      ],
+      "rss": [
+        "https://feeds.bbci.co.uk/news/rss.xml",
+        "https://www.theguardian.com/uk/rss"
+      ],
+      "keywords": ["news", "headlines", "latest news", "current affairs", "breaking news"]
+    },
+    "science_news": {
+      "description": "Trusted science and research news.",
+      "sources": [
+        "https://www.nature.com/news",
+        "https://www.sciencedaily.com/news/"
+      ],
+      "rss": [
+        "https://www.nature.com/nature.rss",
+        "https://www.sciencedaily.com/rss/top/science.xml"
+      ],
+      "keywords": ["science", "scientific", "research", "study", "scientists"]
+    },
+    "space_news": {
+      "description": "Trusted space and astronomy news.",
+      "sources": [
+        "https://www.nasa.gov/news/",
+        "https://www.esa.int/Newsroom",
+        "https://www.space.com/news"
+      ],
+      "rss": [
+        "https://www.nasa.gov/news-release/feed/",
+        "https://www.esa.int/rssfeed/Our_Activities"
+      ],
+      "keywords": ["space", "nasa", "esa", "astronomy", "rocket", "mars", "moon", "planet", "telescope"]
+    },
+    "sports": {
+      "description": "Trusted football and sports results.",
+      "sources": [
+        "https://www.bbc.co.uk/sport/football/scores-fixtures",
+        "https://www.theguardian.com/football/results"
+      ],
+      "rss": [],
+      "keywords": ["football", "premier league", "scores", "results", "fixtures", "fixture", "calendar", "epl", "match", "chelsea", "arsenal", "man utd", "manchester united"]
+    },
+    "finance_energy": {
+      "description": "Trusted oil, crude, energy, and commodity market information.",
+      "sources": [
+        "https://www.reuters.com/markets/commodities/",
+        "https://www.marketwatch.com/markets/commodities",
+        "https://www.eia.gov/todayinenergy/"
+      ],
+      "rss": [
+        "https://www.eia.gov/rss/todayinenergy.xml"
+      ],
+      "keywords": ["oil", "oil prices", "crude", "brent", "wti", "energy", "gas prices", "opec", "barrel", "commodities"]
+    },
+    "trending_topics": {
+      "description": "Popular topics based on Wikimedia pageview data.",
+      "sources": ["https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia/all-access"],
+      "rss": [],
+      "keywords": ["trending", "popular topics", "most popular", "top 10", "top ten"]
+    }
+  }
+}

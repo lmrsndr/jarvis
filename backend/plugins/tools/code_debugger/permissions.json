@@ -1,0 +1,9 @@
+{
+  "network": false,
+  "filesystem_read": true,
+  "filesystem_write": true,
+  "filesystem_delete": true,
+  "destructive": true,
+  "process_spawn": true,
+  "allowed_roots": ["/home/s-ndrlm-r/Projects"]
+}

@@ -1,0 +1,8 @@
+{
+  "network": false,
+  "filesystem_read": false,
+  "filesystem_write": false,
+  "filesystem_delete": false,
+  "destructive": false,
+  "process_spawn": false
+}

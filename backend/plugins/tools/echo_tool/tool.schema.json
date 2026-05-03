@@ -1,0 +1,50 @@
+{
+  "name": "echo_tool",
+  "tool_name": "echo_tool",
+  "version": "0.1.0",
+  "description": "Return supplied text unchanged.",
+  "intents": [
+    "echo text",
+    "repeat my message",
+    "test plugin"
+  ],
+  "execution_mode": "direct_answer",
+  "risk_level": "safe",
+  "entry_file": "tool.py",
+  "entry_function": "run",
+  "permissions": "safe",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ],
+    "additionalProperties": false
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "allowed_changes": [],
+  "forbidden_actions": [
+    "network_access",
+    "filesystem_write",
+    "process_spawn"
+  ],
+  "requires_password_for": [],
+  "tests": [
+    "tests/test_tool.py"
+  ],
+  "enabled": true
+}

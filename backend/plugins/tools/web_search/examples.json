@@ -1,0 +1,12 @@
+{
+  "examples": [
+    {
+      "prompt": "What is the weather today in London?",
+      "args": {"query": "What is the weather today in London?", "max_results": 5}
+    },
+    {
+      "prompt": "Find the latest oil price news from trusted sources",
+      "args": {"query": "Find the latest oil price news from trusted sources", "max_results": 5}
+    }
+  ]
+}

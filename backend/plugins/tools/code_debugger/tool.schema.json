@@ -1,0 +1,61 @@
+{
+  "name": "code_debugger",
+  "tool_name": "code_debugger",
+  "version": "1.0.1",
+  "description": "Reads and audits local projects under /home/s-ndrlm-r/Projects, maps frontend/backend/API relationships, proposes fixes, and applies write/delete actions only after explicit OK confirmation.",
+  "intents": [
+    "audit a local code project",
+    "debug code",
+    "preview a code fix",
+    "apply a code fix",
+    "delete a project file",
+    "read project source"
+  ],
+  "execution_mode": "actuate",
+  "risk_level": "medium",
+  "entry_file": "tool.py",
+  "entry_function": "run",
+  "permissions": "medium",
+  "requires_confirmation": false,
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "description": "Action to run: audit, preview_fix, apply_fix, delete_file, read_file, or list_tree.",
+        "enum": ["audit", "preview_fix", "apply_fix", "delete_file", "read_file", "list_tree"],
+        "default": "audit"
+      },
+      "project_path": {
+        "type": "string",
+        "description": "Absolute path to the project folder. Must be inside /home/s-ndrlm-r/Projects."
+      },
+      "issue_id": {
+        "type": "string",
+        "description": "Issue ID returned by the audit, for preview_fix or apply_fix."
+      },
+      "target_file": {
+        "type": "string",
+        "description": "Relative file path inside the selected project, used by read_file or delete_file."
+      },
+      "confirmation": {
+        "type": "string",
+        "description": "Must be exactly OK for write/delete actions."
+      },
+      "max_files": {
+        "type": "integer",
+        "description": "Maximum number of files returned by list_tree.",
+        "default": 500
+      }
+    },
+    "required": ["action", "project_path"]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "allowed_changes": [],
+  "forbidden_actions": ["core_rewrite", "filesystem_delete_without_confirmation"],
+  "requires_password_for": ["apply_fix", "delete_file"],
+  "tests": ["tests.py"],
+  "enabled": true
+}

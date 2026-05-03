@@ -1,0 +1,280 @@
+:root {
+  color: #172026;
+  background: #f3f5f2;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+select {
+  min-height: 2.5rem;
+}
+
+button {
+  border: 1px solid #24343c;
+  background: #24343c;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0 1rem;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.workspace,
+.side-panel {
+  min-width: 0;
+}
+
+.topbar {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.topbar h1,
+.topbar p,
+.panel h2 {
+  margin: 0;
+}
+
+.topbar h1 {
+  font-size: 1.8rem;
+}
+
+.topbar p {
+  color: #53656d;
+}
+
+.provider-selector {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 240px;
+}
+
+.login-panel {
+  align-items: end;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 220px;
+}
+
+.login-panel form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.login-panel span,
+.login-panel small {
+  color: #53656d;
+  font-size: 0.9rem;
+}
+
+.provider-selector span {
+  color: #53656d;
+  font-size: 0.9rem;
+}
+
+.provider-selector small {
+  color: #9a3412;
+}
+
+.provider-selector select,
+textarea,
+input {
+  border: 1px solid #b8c3bd;
+  border-radius: 6px;
+  padding: 0.7rem;
+  width: 100%;
+}
+
+.chat-box {
+  background: white;
+  border: 1px solid #d6ddd7;
+  border-radius: 8px;
+  display: grid;
+  grid-template-rows: minmax(320px, 1fr) auto;
+  min-height: calc(100vh - 6rem);
+  overflow: hidden;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.message {
+  border-radius: 8px;
+  max-width: min(780px, 90%);
+  padding: 0.75rem;
+}
+
+.message strong {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+.message p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.message small {
+  color: #7f4d18;
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #d9eee6;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: #eef1ed;
+}
+
+.composer {
+  border-top: 1px solid #d6ddd7;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 1rem;
+}
+
+.voice-button {
+  background: #386150;
+  border-color: #386150;
+  min-width: 5.5rem;
+}
+
+.side-panel {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #d6ddd7;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.panel header,
+.panel li,
+.memory-form {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.memory-form {
+  margin-top: 1rem;
+}
+
+.memory-form select {
+  border: 1px solid #b8c3bd;
+  border-radius: 6px;
+  padding: 0.7rem;
+  width: 10rem;
+}
+
+.panel ul {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.panel li {
+  border-top: 1px solid #edf0ed;
+  padding-top: 0.5rem;
+}
+
+.panel small {
+  color: #53656d;
+}
+
+.link-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #172026;
+  display: flex;
+  justify-content: space-between;
+  min-height: auto;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.memory-detail {
+  border-top: 1px solid #d6ddd7;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.memory-detail h3,
+.memory-detail p {
+  margin: 0 0 0.5rem;
+}
+
+.tags {
+  color: #53656d;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar,
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: stretch;
+    display: grid;
+    gap: 1rem;
+  }
+}

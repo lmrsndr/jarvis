@@ -1,0 +1,86 @@
+{
+  "name": "filesystem_manager",
+  "tool_name": "filesystem_manager",
+  "version": "0.1.0",
+  "description": "Safely list, read, search, create and manage files under ~/Projects. Destructive actions require host-verified admin confirmation and exact approval text.",
+  "intents": [
+    "list local files",
+    "show project tree",
+    "read a file",
+    "create a file",
+    "create a folder",
+    "append to a file",
+    "overwrite a file",
+    "rename a file",
+    "delete a file",
+    "search local project files"
+  ],
+  "execution_mode": "actuate",
+  "risk_level": "medium",
+  "entry_file": "tool.py",
+  "entry_function": "run",
+  "permissions": "medium",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string",
+        "enum": [
+          "list",
+          "tree",
+          "read",
+          "info",
+          "search_names",
+          "search_text",
+          "create_file",
+          "create_folder",
+          "append_file",
+          "overwrite_file",
+          "rename",
+          "delete"
+        ]
+      },
+      "path": {
+        "type": "string",
+        "description": "Path inside ~/Projects. Relative paths are treated as relative to ~/Projects."
+      },
+      "destination": {
+        "type": "string",
+        "description": "Destination path for rename, inside ~/Projects."
+      },
+      "content": {
+        "type": "string",
+        "description": "Content for create_file, append_file, or overwrite_file."
+      },
+      "max_depth": {
+        "type": "integer",
+        "description": "Tree depth, capped at 8."
+      },
+      "pattern": {
+        "type": "string",
+        "description": "Filename glob pattern for search_names."
+      },
+      "query": {
+        "type": "string",
+        "description": "Text query for search_text."
+      },
+      "admin_confirmed": {
+        "type": "boolean",
+        "description": "Host app should set true only after admin password verification. Required for destructive actions."
+      },
+      "approval_text": {
+        "type": "string",
+        "description": "Exact approval phrase required for destructive actions."
+      }
+    },
+    "required": ["action", "path"]
+  },
+  "output_schema": {
+    "type": "object"
+  },
+  "allowed_changes": [],
+  "forbidden_actions": ["core_rewrite", "filesystem_delete_without_confirmation"],
+  "requires_password_for": ["delete", "overwrite_file", "rename"],
+  "tests": ["tests/test_tool.py"],
+  "enabled": true
+}

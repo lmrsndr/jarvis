@@ -1,0 +1,12 @@
+{
+  "examples": [
+    {
+      "prompt": "Audit the Jarvis project for backend bugs",
+      "args": {"action": "audit", "project_path": "/home/s-ndrlm-r/Projects/Jarvis/jarvis"}
+    },
+    {
+      "prompt": "Preview a fix for issue ISSUE-1 in Jarvis",
+      "args": {"action": "preview_fix", "project_path": "/home/s-ndrlm-r/Projects/Jarvis/jarvis", "issue_id": "ISSUE-1"}
+    }
+  ]
+}

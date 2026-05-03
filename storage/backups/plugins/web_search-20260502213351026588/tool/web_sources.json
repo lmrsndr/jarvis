@@ -1,0 +1,43 @@
+{
+  "categories": {
+    "space_news": {
+      "description": "Trusted space and astronomy news sources.",
+      "keywords": ["space", "nasa", "esa", "astronomy", "rocket", "moon", "mars", "planet", "telescope"],
+      "sources": [
+        "https://www.nasa.gov/news/",
+        "https://www.esa.int/Newsroom",
+        "https://skyandtelescope.org/astronomy-news/"
+      ],
+      "rss": [
+        "https://www.nasa.gov/news-release/feed/",
+        "https://www.esa.int/rssfeed/Our_Activities"
+      ]
+    },
+    "science_news": {
+      "description": "Trusted science news sources.",
+      "keywords": ["science", "research", "physics", "biology", "chemistry", "climate", "study", "scientists"],
+      "sources": [
+        "https://www.sciencedaily.com/news/",
+        "https://www.nature.com/news",
+        "https://www.newscientist.com/section/news/"
+      ],
+      "rss": [
+        "https://www.sciencedaily.com/rss/top/science.xml",
+        "https://www.nature.com/nature.rss"
+      ]
+    },
+    "uk_news": {
+      "description": "UK general news sources.",
+      "keywords": ["uk news", "britain", "england", "government", "today news", "headlines"],
+      "sources": [
+        "https://www.bbc.co.uk/news",
+        "https://www.theguardian.com/uk-news",
+        "https://news.sky.com/uk"
+      ],
+      "rss": [
+        "https://feeds.bbci.co.uk/news/rss.xml",
+        "https://www.theguardian.com/uk/rss"
+      ]
+    }
+  }
+}

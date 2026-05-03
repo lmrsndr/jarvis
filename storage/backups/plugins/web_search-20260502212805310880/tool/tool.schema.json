@@ -1,0 +1,46 @@
+{
+  "tool_name": "web_search",
+  "version": "0.1.0",
+  "description": "Search the web for real-time information using DuckDuckGo Instant Answer.",
+  "entry_file": "tool.py",
+  "entry_function": "run",
+  "permissions": "safe",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "The search query to look up."
+      },
+      "max_results": {
+        "type": "integer",
+        "description": "Maximum number of results to return.",
+        "default": 5,
+        "minimum": 1,
+        "maximum": 10
+      }
+    },
+    "required": ["query"]
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "ok": { "type": "boolean" },
+      "query": { "type": "string" },
+      "provider": { "type": "string" },
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "url": { "type": "string" },
+            "snippet": { "type": "string" }
+          }
+        }
+      },
+      "error": { "type": "string" },
+      "note": { "type": "string" }
+    }
+  }
+}

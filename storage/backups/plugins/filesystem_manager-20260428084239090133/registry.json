@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    {
+      "tool_name": "echo_tool",
+      "enabled": true
+    },
+    {
+      "tool_name": "web_search",
+      "enabled": true
+    }
+  ]
+}
