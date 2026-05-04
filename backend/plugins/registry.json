@@ -13,6 +13,10 @@
       "enabled": true
     },
     {
+      "tool_name": "football_results",
+      "enabled": true
+    },
+    {
       "tool_name": "web_search",
       "enabled": true
     }
