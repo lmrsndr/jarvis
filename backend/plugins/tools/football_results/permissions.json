@@ -1,0 +1,11 @@
+{
+  "network": true,
+  "filesystem_read": false,
+  "filesystem_write": false,
+  "filesystem_delete": false,
+  "destructive": false,
+  "process_spawn": false,
+  "allowed_hosts": [
+    "www.theguardian.com"
+  ]
+}
