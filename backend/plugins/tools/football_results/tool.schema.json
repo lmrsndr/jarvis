@@ -4,6 +4,7 @@
   "description": "Extract verified football results from strict trusted sources. Currently supports today's Premier League results.",
   "version": "0.1.0",
   "permissions": "safe",
+  "risk_level": "safe",
   "execution_mode": "direct_answer",
   "intents": [
     "football results",
