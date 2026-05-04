@@ -488,6 +488,113 @@ def _looks_like_fixture_query(q: str) -> bool:
     return any(w in q for w in ["fixture", "fixtures", "calendar", "next match", "playing next"])
 
 
+def _looks_like_premier_league_results_query(q: str) -> bool:
+    q = q.lower()
+    competition = "premier league" in q or "epl" in q
+    wants_results = any(w in q for w in ["result", "results", "score", "scores"])
+    wants_fixtures = any(w in q for w in ["fixture", "fixtures", "calendar", "next match", "kick off", "kick-off"])
+    return competition and wants_results and not wants_fixtures
+
+
+def _extract_guardian_premier_league_results(html: str, url: str) -> List[Dict[str, Any]]:
+    text = _html_to_text(html)
+    # Normalise common team aliases only after extraction.
+    aliases = {
+        "C Palace": "Crystal Palace",
+        "Spurs": "Spurs",
+        "Man Utd": "Man Utd",
+        "AFC Bournemouth": "AFC Bournemouth",
+    }
+
+    section_match = re.search(
+        r"(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday),\s+\d{1,2}\s+\w+\s+\d{4}\s+Premier League\s+(.*?)(?:\s+Bundesliga|\s+Serie A|\s+La Liga|\s+Ligue 1|\s+Women|s Super League|\s+Scottish Premiership|\s+Championship|\s+League One|\s+League Two|\s+Friday,|\s+Saturday,|\s+Sunday,|\s+Monday,|\s+Tuesday,|\s+Wednesday,|\s+Thursday,|$)",
+        text,
+        flags=re.I | re.S,
+    )
+    if not section_match:
+        return []
+
+    section = _clean_text(section_match.group(2))
+    results: List[Dict[str, Any]] = []
+    pattern = re.compile(
+        r"\bFT\s+([A-Z][A-Za-z .&'-]+?)\s+(\d{1,2})\s+(\d{1,2})\s+([A-Z][A-Za-z .&'-]+?)(?=\s+FT\s+[A-Z]|\s*$)",
+        flags=re.I,
+    )
+    for match in pattern.finditer(section):
+        home = _clean_text(match.group(1)).strip(" -")
+        home_score = int(match.group(2))
+        away_score = int(match.group(3))
+        away = _clean_text(match.group(4)).strip(" -")
+        # Trim accidental carry-over if another league heading leaked in.
+        away = re.split(r"\b(?:Bundesliga|Serie A|La Liga|Ligue 1|Scottish Premiership|Women)\b", away)[0].strip()
+        home = aliases.get(home, home)
+        away = aliases.get(away, away)
+        if not home or not away:
+            continue
+        results.append(
+            {
+                "home_team": home,
+                "away_team": away,
+                "home_score": home_score,
+                "away_score": away_score,
+                "competition": "Premier League",
+                "status": "FT",
+                "title": f"{home} {home_score}-{away_score} {away}",
+                "url": url,
+                "source": "The Guardian",
+                "snippet": f"FT {home} {home_score}-{away_score} {away}",
+                "relevance_score": 10,
+            }
+        )
+    return results
+
+
+def _premier_league_results_handler(query: str, categories: Dict[str, Any], max_results: int, ttl: int, no_cache: bool) -> Dict[str, Any]:
+    cfg = categories.get("sports", {})
+    guardian_urls = [str(url) for url in cfg.get("sources", []) or [] if "theguardian.com/football/results" in str(url)]
+    if not guardian_urls:
+        guardian_urls = ["https://www.theguardian.com/football/results"]
+
+    for url in guardian_urls:
+        try:
+            r = _get(url, ttl=300, no_cache=no_cache)
+            r.raise_for_status()
+            results = _extract_guardian_premier_league_results(r.text, r.url or url)
+            if results:
+                results = results[:max_results]
+                lines = ["Today's Premier League results:"]
+                for item in results:
+                    lines.append(f"- {item['home_team']} {item['home_score']}-{item['away_score']} {item['away_team']}")
+                lines.append("")
+                lines.append("Source: The Guardian")
+                return _response(
+                    True,
+                    mode="direct_extraction",
+                    handler="premier_league_results",
+                    provider="the_guardian",
+                    query=query,
+                    answer="\n".join(lines),
+                    confidence=0.95,
+                    results=results,
+                    sources=[{"source_name": "The Guardian", "url": r.url or url, "title": "All results | Football | The Guardian"}],
+                )
+        except Exception:
+            continue
+
+    return _response(
+        True,
+        mode="direct_extraction",
+        handler="premier_league_results",
+        provider="trusted_sources",
+        query=query,
+        answer="I could not verify completed Premier League results for today from trusted sources. I found fixtures instead, but not final results.",
+        confidence=0.3,
+        results=[],
+        sources=guardian_urls,
+        strict_extraction_failed=True,
+    )
+
+
 def _looks_like_trending(q: str) -> bool:
     q = q.lower()
     return any(x in q for x in ["trending", "popular topics", "most popular", "top 10", "top ten"])
@@ -1138,6 +1245,9 @@ def run(args: Dict[str, Any]) -> Dict[str, Any]:
 
     if _looks_like_weather(query):
         return _weather_handler(query, max_results, args.get("location"), ttl, no_cache)
+
+    if _looks_like_premier_league_results_query(query):
+        return _premier_league_results_handler(query, categories, max_results, ttl, no_cache)
 
     category = _detect_category(query, categories)
     if category:
