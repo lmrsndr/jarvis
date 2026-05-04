@@ -1,4 +1,5 @@
 {
+  "name": "football_results",
   "tool_name": "football_results",
   "description": "Extract verified football results from strict trusted sources. Currently supports today's Premier League results.",
   "version": "0.1.0",
