@@ -356,7 +356,7 @@ class Assistant:
         tool_result_ok = (
             "error" not in tool_result
             and tool_result.get("ok", True) is not False
-            and mode in {"direct_api", "trusted_rag"}
+            and mode in {"direct_api", "direct_extraction", "trusted_rag"}
             and (mode != "trusted_rag" or bool(documents))
         )
         metadata = _tool_metadata(
@@ -378,7 +378,7 @@ class Assistant:
             _tool_audit_payload(conversation_id, selected_provider, route, executed=executed),
         )
 
-        if tool_result_ok and mode == "direct_api":
+        if tool_result_ok and mode in {"direct_api", "direct_extraction"}:
             reply = _answer_from_tool_result("web_search", tool_result)
             logger.info("tool result used")
             self.memory_db.add_message(conversation_id, "user", message, selected_provider)
