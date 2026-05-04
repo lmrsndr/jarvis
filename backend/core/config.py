@@ -68,6 +68,8 @@ class Settings:
     vector_path: str = _path_env("JARVIS_VECTOR_PATH", ROOT_DIR / "storage" / "memory_files" / "vectors.json")
     stt_provider: str = os.getenv("JARVIS_STT_PROVIDER", "local")
     stt_model: str = os.getenv("JARVIS_STT_MODEL", "base")
+    llm_planner_enabled: bool = _bool_env("JARVIS_LLM_PLANNER", False)
+    llm_planner_min_confidence: float = float(os.getenv("JARVIS_LLM_PLANNER_MIN_CONFIDENCE", "0.55"))
 
     def __post_init__(self) -> None:
         if self.allowed_origins is None:
@@ -113,4 +115,6 @@ def get_settings() -> Settings:
         vector_path=_path_env("JARVIS_VECTOR_PATH", ROOT_DIR / "storage" / "memory_files" / "vectors.json"),
         stt_provider=os.getenv("JARVIS_STT_PROVIDER", "local"),
         stt_model=os.getenv("JARVIS_STT_MODEL", "base"),
+        llm_planner_enabled=_bool_env("JARVIS_LLM_PLANNER", False),
+        llm_planner_min_confidence=float(os.getenv("JARVIS_LLM_PLANNER_MIN_CONFIDENCE", "0.55")),
     )
