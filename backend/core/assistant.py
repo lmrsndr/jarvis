@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 from uuid import uuid4
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from core.audit_log import write_audit_event
 from core.config import Settings
@@ -89,6 +91,14 @@ class Assistant:
     async def chat(self, message: str, provider_name: str | None = None, conversation_id: str | None = None) -> AssistantResponse:
         selected_provider = normalize_provider_name(provider_name or get_selected_provider())
         active_conversation_id = conversation_id or str(uuid4())
+        local_datetime_response = self._chat_with_local_datetime(
+            message=message,
+            selected_provider=selected_provider,
+            conversation_id=active_conversation_id,
+        )
+        if local_datetime_response is not None:
+            return local_datetime_response
+
         plugin_loader = PluginLoader()
         if is_approval_message(message):
             return self._chat_with_protected_action_approval(
@@ -197,6 +207,36 @@ class Assistant:
             {"conversation_id": active_conversation_id, "provider": selected_provider, "message_length": len(message)},
         )
         return AssistantResponse(active_conversation_id, selected_provider, reply, recalled, provider_response.metadata)
+
+    def _chat_with_local_datetime(
+        self,
+        message: str,
+        selected_provider: str,
+        conversation_id: str,
+    ) -> AssistantResponse | None:
+        request_type = _local_datetime_request_type(message)
+        if request_type is None:
+            return None
+
+        now = _local_now(self.settings)
+        reply = _local_datetime_answer(request_type, now)
+        self.memory_db.add_message(conversation_id, "user", message, selected_provider)
+        self.memory_db.add_message(conversation_id, "assistant", reply, selected_provider)
+        metadata = {
+            "provider": selected_provider,
+            "handler": "local_datetime",
+            "model_used_after_tool": False,
+            "external_provider_used": False,
+        }
+        write_audit_event(
+            "chat.local_datetime",
+            {
+                "conversation_id": conversation_id,
+                "provider": selected_provider,
+                "request_type": request_type,
+            },
+        )
+        return AssistantResponse(conversation_id, selected_provider, reply, [], metadata)
 
     def _chat_with_tool(
         self,
@@ -731,6 +771,65 @@ def _build_context_prefix(recalled: list[dict[str, str]]) -> str:
         return ""
     facts = "\n".join(f"- [{item['memory_type']}] {item['title']}: {item['content']}" for item in recalled)
     return f"Relevant local memory. Use only if directly helpful and do not reveal internal IDs:\n{facts}\n\n"
+
+
+def _local_datetime_request_type(message: str) -> str | None:
+    normalized = re.sub(r"['’]", "", message.strip().lower())
+    normalized = re.sub(r"[^a-z0-9]+", " ", normalized).strip()
+    year_queries = {
+        "what year are we in now",
+        "what year are we in",
+        "what year is it",
+        "what is the current year",
+        "current year",
+    }
+    date_queries = {
+        "what is the date today",
+        "what date is it",
+        "what is the date",
+        "what is todays date",
+        "todays date",
+        "current date",
+        "what is the current date",
+    }
+    time_queries = {
+        "what time is it",
+        "what is the time",
+        "what is the time now",
+        "what is the current time",
+        "current time",
+        "time now",
+    }
+    if normalized in year_queries:
+        return "year"
+    if normalized in date_queries:
+        return "date"
+    if normalized in time_queries:
+        return "time"
+    return None
+
+
+def _local_now(settings: Settings) -> datetime:
+    timezone_name = None
+    for attr in ("timezone", "time_zone", "local_timezone"):
+        value = getattr(settings, attr, None)
+        if value:
+            timezone_name = str(value)
+            break
+    if timezone_name:
+        try:
+            return datetime.now(ZoneInfo(timezone_name))
+        except ZoneInfoNotFoundError:
+            logger.warning("configured timezone not found; falling back to system local time")
+    return datetime.now().astimezone()
+
+
+def _local_datetime_answer(request_type: str, now: datetime) -> str:
+    if request_type == "year":
+        return f"We are in {now.year}."
+    if request_type == "date":
+        return f"Today's date is {now:%B} {now.day}, {now.year}."
+    return f"The current local time is {now:%H:%M} {now.tzname() or ''}.".rstrip()
 
 
 def _build_trusted_rag_prompt(message: str, documents: list[dict[str, Any]]) -> str:
