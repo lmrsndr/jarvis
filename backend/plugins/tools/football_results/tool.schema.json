@@ -1,0 +1,66 @@
+{
+  "tool_name": "football_results",
+  "description": "Extract verified football results from strict trusted sources. Currently supports today's Premier League results.",
+  "version": "0.1.0",
+  "permissions": "safe",
+  "execution_mode": "direct_answer",
+  "intents": [
+    "football results",
+    "premier league results",
+    "today's premier league results",
+    "football scores",
+    "premier league scores"
+  ],
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": {
+        "type": "string",
+        "description": "The football results query to answer."
+      },
+      "message": {
+        "type": "string",
+        "description": "Alternative user message field."
+      },
+      "max_results": {
+        "type": "integer",
+        "description": "Maximum number of matches to return.",
+        "default": 20
+      },
+      "no_cache": {
+        "type": "boolean",
+        "description": "Whether to bypass cache if supported.",
+        "default": false
+      }
+    },
+    "required": ["query"],
+    "additionalProperties": true
+  },
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "ok": {
+        "type": "boolean"
+      },
+      "mode": {
+        "type": "string"
+      },
+      "handler": {
+        "type": "string"
+      },
+      "answer": {
+        "type": "string"
+      },
+      "results": {
+        "type": "array"
+      },
+      "sources": {
+        "type": "array"
+      },
+      "confidence": {
+        "type": "number"
+      }
+    },
+    "required": ["ok", "answer", "confidence"]
+  }
+}
