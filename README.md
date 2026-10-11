@@ -1,3 +1,19 @@
+# Jarvis — local intelligence command center
+
+![Jarvis command center](docs/command-center.jpg)
+
+*Development browser capture. CPU/RAM are measured in the test environment; no GPU or local model is available there.*
+
+A 4K-ready interface with an animated Jarvis face, measured system vitals, durable mission queue, owner-installed skills, native Ollama tools, local voice and explicitly configured email reports.
+
+Start with [Windows installation and implementation status](docs/IMPLEMENTATION.md). The default model is `qwen3.5:9b-q4_K_M`; Qwen2.5 14B Q5 remains a tested alternative. No paid model is selected automatically.
+
+The current feature boundaries and adapter requirements are documented explicitly. Bundlebee and PostGameLens display disconnected until their real adapters are configured.
+
+---
+
+## Legacy API documentation
+
 # Jarvis
 
 Jarvis is a local-first, modular AI assistant platform built with FastAPI (backend), Vue 3 (frontend), SQLite (storage), and a lightweight local vector index. Ollama is the default LLM provider, with optional support for OpenAI and Gemini when configured.

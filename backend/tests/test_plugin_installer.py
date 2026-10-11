@@ -62,10 +62,10 @@ def test_core_modification_refusal(tmp_path: Path) -> None:
         extra_files={"backend/core/config.py": b"# unsafe core replacement\n"},
     )
 
-    preview = installer.preview_package(package, "core_tool.zip")
-    assert preview.forbidden
-    with pytest.raises(PluginInstallError, match="Protected file missing marker blocks"):
-        installer.apply_package(package, "core_tool.zip", admin_password_valid=True, approval_text="APPROVE CORE CHANGE: config.py")
+    with pytest.raises(PluginInstallError, match="own tool directory"):
+        installer.preview_package(package, "core_tool.zip")
+    with pytest.raises(PluginInstallError, match="own tool directory"):
+        installer.apply_package(package, "core_tool.zip", admin_password_valid=True)
 
 
 def test_delete_marker_is_refused(tmp_path: Path) -> None:

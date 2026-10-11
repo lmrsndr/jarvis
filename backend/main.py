@@ -13,6 +13,12 @@ from api.voice_routes import router as voice_router
 from core.config import get_settings
 from core.permissions import ensure_local_request
 from memory.db import MemoryDatabase
+import asyncio
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from control.store import Store
+from control.scheduler import Scheduler
+from control.routes import router as control_router
 
 
 settings = get_settings()
@@ -20,8 +26,21 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    MemoryDatabase(settings.memory_db_path).init()
-    yield
+    memory = MemoryDatabase(settings.memory_db_path)
+    memory.init()
+    store = Store(settings.memory_db_path)
+    store.init()
+    _app.state.control_memory = memory
+    _app.state.control_store = store
+    _app.state.agent_lock = asyncio.Lock()
+    scheduler = Scheduler(store, settings)
+    scheduler.agent_lock = _app.state.agent_lock
+    _app.state.scheduler = scheduler
+    await scheduler.start()
+    try:
+        yield
+    finally:
+        await scheduler.close()
 
 
 app = FastAPI(title="Jarvis", version="0.1.0", lifespan=lifespan)
@@ -60,3 +79,8 @@ app.include_router(chat_router, dependencies=[Depends(local_guard)])
 app.include_router(memory_router, dependencies=[Depends(local_guard)])
 app.include_router(plugin_router, dependencies=[Depends(local_guard)])
 app.include_router(voice_router, dependencies=[Depends(local_guard)])
+
+app.include_router(control_router, dependencies=[Depends(local_guard)])
+frontend_dist = Path(__file__).resolve().parents[1] / "frontend" / "dist"
+if frontend_dist.exists():
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="command-center")

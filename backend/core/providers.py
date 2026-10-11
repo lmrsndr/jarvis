@@ -48,7 +48,9 @@ class ChatProvider(ABC):
     external: bool = False
 
     @abstractmethod
-    async def chat(self, message: str, history: list[dict[str, str]] | None = None) -> ProviderResponse:
+    async def chat(
+        self, message: str, history: list[dict[str, str]] | None = None
+    ) -> ProviderResponse:
         raise NotImplementedError
 
 
@@ -60,35 +62,57 @@ class OllamaProvider(ChatProvider):
         self.base_url = settings.ollama_base_url.rstrip("/")
         self.model = settings.ollama_model
 
-    async def chat(self, message: str, history: list[dict[str, str]] | None = None) -> ProviderResponse:
-        messages = [{"role": item["role"], "content": item["content"]} for item in history or []]
+    async def chat(
+        self, message: str, history: list[dict[str, str]] | None = None
+    ) -> ProviderResponse:
+        messages = [
+            {"role": item["role"], "content": item["content"]} for item in history or []
+        ]
         messages.append({"role": "user", "content": message})
-
-        prompt = "\n".join(
-            f"{item['role'].upper()}: {item['content']}"
-            for item in messages
-        )
 
         payload = {
             "model": self.model,
-            "prompt": prompt,
+            "messages": messages,
             "stream": False,
+            "think": False,
+            "keep_alive": "5m",
+            "options": {"num_ctx": 8192},
         }
 
         try:
-            async with httpx.AsyncClient(timeout=60) as client:
-                response = await client.post(f"{self.base_url}/api/generate", json=payload)
+            async with httpx.AsyncClient(trust_env=False, timeout=60) as client:
+                response = await client.post(f"{self.base_url}/api/chat", json=payload)
                 response.raise_for_status()
         except httpx.HTTPError as exc:
             raise ProviderError(f"Ollama request failed: {exc}") from exc
 
         data = response.json()
         return ProviderResponse(
-            content=data.get("response", "").strip(),
+            content=data.get("message", {}).get("content", "").strip(),
             provider=self.name,
             model=self.model,
             external=self.external,
         )
+
+    async def native_chat(self, messages, tools):
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "tools": tools,
+            "stream": False,
+            "think": False,
+            "keep_alive": "5m",
+            "options": {"num_ctx": 8192, "num_predict": 2048, "temperature": 0.1},
+        }
+        try:
+            async with httpx.AsyncClient(trust_env=False, timeout=90) as client:
+                response = await client.post(f"{self.base_url}/api/chat", json=payload)
+                response.raise_for_status()
+                return response.json()
+        except httpx.HTTPError as exc:
+            raise ProviderError(
+                "Local model request failed; check Ollama server logs."
+            ) from exc
 
 
 class OpenAIProvider(ChatProvider):
@@ -103,17 +127,24 @@ class OpenAIProvider(ChatProvider):
         self.api_key = settings.openai_api_key
         self.model = settings.openai_model
 
-    async def chat(self, message: str, history: list[dict[str, str]] | None = None) -> ProviderResponse:
+    async def chat(
+        self, message: str, history: list[dict[str, str]] | None = None
+    ) -> ProviderResponse:
         input_items: list[dict[str, Any]] = [
             {"role": item["role"], "content": item["content"]} for item in history or []
         ]
         input_items.append({"role": "user", "content": message})
         payload = {"model": self.model, "input": input_items}
-        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
 
         try:
             async with httpx.AsyncClient(timeout=60) as client:
-                response = await client.post("https://api.openai.com/v1/responses", json=payload, headers=headers)
+                response = await client.post(
+                    "https://api.openai.com/v1/responses", json=payload, headers=headers
+                )
                 response.raise_for_status()
         except httpx.HTTPError as exc:
             raise ProviderError(f"OpenAI request failed: {exc}") from exc
@@ -123,7 +154,12 @@ class OpenAIProvider(ChatProvider):
             content = text.strip()
         else:
             content = _extract_openai_text(data).strip()
-        return ProviderResponse(content=content, provider=self.name, model=self.model, external=self.external)
+        return ProviderResponse(
+            content=content,
+            provider=self.name,
+            model=self.model,
+            external=self.external,
+        )
 
 
 class GeminiProvider(ChatProvider):
@@ -138,7 +174,9 @@ class GeminiProvider(ChatProvider):
         self.api_key = settings.gemini_api_key
         self.model = settings.gemini_model
 
-    async def chat(self, message: str, history: list[dict[str, str]] | None = None) -> ProviderResponse:
+    async def chat(
+        self, message: str, history: list[dict[str, str]] | None = None
+    ) -> ProviderResponse:
         contents = []
         for item in history or []:
             role = "model" if item["role"] == "assistant" else "user"
@@ -160,10 +198,17 @@ class GeminiProvider(ChatProvider):
         data = response.json()
         candidates = data.get("candidates", [])
         if not candidates:
-            return ProviderResponse(content="", provider=self.name, model=self.model, external=self.external)
+            return ProviderResponse(
+                content="", provider=self.name, model=self.model, external=self.external
+            )
         parts = candidates[0].get("content", {}).get("parts", [])
         content = "".join(part.get("text", "") for part in parts).strip()
-        return ProviderResponse(content=content, provider=self.name, model=self.model, external=self.external)
+        return ProviderResponse(
+            content=content,
+            provider=self.name,
+            model=self.model,
+            external=self.external,
+        )
 
 
 def normalize_provider_name(name: str | None) -> str:
@@ -173,7 +218,9 @@ def normalize_provider_name(name: str | None) -> str:
     return PROVIDER_ALIASES[provider_name]
 
 
-def get_provider(name: str | None, settings: Settings, explicit: bool = False) -> ChatProvider:
+def get_provider(
+    name: str | None, settings: Settings, explicit: bool = False
+) -> ChatProvider:
     provider_name = normalize_provider_name(name or get_selected_provider())
     if provider_name == "ollama":
         return OllamaProvider(settings)
@@ -192,8 +239,12 @@ def set_selected_provider(name: str, settings: Settings) -> str:
     global _selected_provider
 
     provider_name = normalize_provider_name(name)
-    if provider_name in EXTERNAL_PROVIDERS and not settings.provider_available(provider_name):
-        raise ProviderError(f"{provider_name} is disabled because its API key is not set.")
+    if provider_name in EXTERNAL_PROVIDERS and not settings.provider_available(
+        provider_name
+    ):
+        raise ProviderError(
+            f"{provider_name} is disabled because its API key is not set."
+        )
 
     _selected_provider = provider_name
     return _selected_provider

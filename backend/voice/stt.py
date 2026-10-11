@@ -1,7 +1,8 @@
 from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
+from functools import lru_cache
+from threading import Lock
 
 
 class TranscriptionError(RuntimeError):
@@ -15,32 +16,41 @@ class TranscriptionResult:
     model: str
 
 
+@lru_cache(maxsize=2)
+def _model(name):
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError as exc:
+        raise TranscriptionError(
+            "Local speech-to-text failed: install faster-whisper from backend/requirements-voice.txt."
+        ) from exc
+    return WhisperModel(name, device="cpu", compute_type="int8")
+
+
+_lock = Lock()
+
+
 class LocalSTTProvider:
-    def __init__(self, model_name: str = "base") -> None:
+    def __init__(self, model_name="base"):
         self.model_name = model_name
 
-    def transcribe(self, path: str) -> TranscriptionResult:
-        audio_path = Path(path)
-        if not audio_path.exists():
-            raise TranscriptionError(f"Audio file not found: {audio_path}")
+    def transcribe(self, path):
+        if not Path(path).exists():
+            raise TranscriptionError(f"Audio file not found: {path}")
         try:
-            from faster_whisper import WhisperModel
-        except ImportError as exc:
-            raise TranscriptionError(
-                "Local speech-to-text requires faster-whisper. Install it with "
-                "`main/bin/python -m pip install faster-whisper` and set JARVIS_STT_PROVIDER=local."
-            ) from exc
-
-        try:
-            model = WhisperModel(self.model_name, device="cpu", compute_type="int8")
-            segments, _info = model.transcribe(str(audio_path))
-            text = " ".join(segment.text.strip() for segment in segments if segment.text.strip()).strip()
+            with _lock:
+                segments, _ = _model(self.model_name).transcribe(path)
+                text = " ".join(s.text.strip() for s in segments if s.text.strip())
+        except TranscriptionError:
+            raise
         except Exception as exc:
-            raise TranscriptionError(f"Local speech-to-text failed: {exc}") from exc
-        return TranscriptionResult(text=text, provider="local", model=self.model_name)
+            raise TranscriptionError(
+                "Local speech-to-text failed: " + str(exc)
+            ) from exc
+        return TranscriptionResult(text, "local", self.model_name)
 
 
-def transcribe_audio(path: str, provider: str = "local", model_name: str = "base") -> TranscriptionResult:
+def transcribe_audio(path, provider="local", model_name="base"):
     if provider != "local":
         raise TranscriptionError("Only local speech-to-text is supported by default.")
     return LocalSTTProvider(model_name).transcribe(path)
