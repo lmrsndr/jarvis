@@ -117,7 +117,7 @@
 
       <section class="presence-column">
         <div class="presence-label">
-          <span class="tiny-cross">+</span> NEURAL INTERFACE
+          <span class="tiny-cross">+</span> WORKSHOP / LIVE INTERFACE
           <span class="tiny-cross">+</span>
         </div>
         <div
@@ -128,44 +128,133 @@
           <div class="face-halo"></div>
           <svg class="jarvis-face" viewBox="0 0 700 620" aria-hidden="true">
             <defs>
-              <linearGradient id="faceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#b5faff" />
-                <stop offset="1" stop-color="#2bb6d3" stop-opacity=".12" />
+              <linearGradient id="chassisSteel" x1="0" y1="0" x2=".8" y2="1">
+                <stop offset="0" stop-color="#39443d" />
+                <stop offset=".5" stop-color="#161d19" />
+                <stop offset="1" stop-color="#252c25" />
               </linearGradient>
-              <filter id="glow"><feGaussianBlur stdDeviation="3" /></filter>
+              <pattern
+                id="hazardStripe"
+                width="20"
+                height="20"
+                patternUnits="userSpaceOnUse"
+                patternTransform="rotate(35)"
+              >
+                <rect width="9" height="20" fill="#e6ac46" />
+              </pattern>
+              <pattern
+                id="visorScan"
+                width="8"
+                height="8"
+                patternUnits="userSpaceOnUse"
+              >
+                <path d="M0 0 H8" stroke="#b9f859" stroke-opacity=".08" />
+              </pattern>
             </defs>
-            <g class="outer-orbit" transform="translate(350 300)">
-              <circle r="265" />
-              <circle r="256" stroke-dasharray="2 15" />
-              <path d="M -264 0 A 264 264 0 0 1 -132 -229" class="bright-arc" />
-              <path d="M 132 229 A 264 264 0 0 0 264 0" class="bright-arc" />
+            <g class="garage-guides">
+              <path
+                d="M95 210 V110 H220 M490 110 H605 V190 M95 415 V500 H190 M525 500 H605 V410"
+              />
+              <path d="M75 300 H145 M555 300 H625 M350 74 V112 M350 506 V547" />
+              <path d="M115 135 H585 V475 H115 Z" stroke-dasharray="3 13" />
             </g>
-            <g class="inner-orbit" transform="translate(350 300)">
-              <circle r="223" stroke-dasharray="70 140 15 70" />
-              <circle r="232" stroke-dasharray="1 65" />
+            <g class="circuit-traces">
+              <path
+                d="M175 230 H120 V190 H87 M525 230 H572 V167 H613 M186 401 H141 V453 H100 M492 415 H554 V466 H619"
+              />
+              <circle cx="87" cy="190" r="5" />
+              <circle cx="613" cy="167" r="5" />
+              <circle cx="100" cy="453" r="5" />
+              <circle cx="619" cy="466" r="5" />
             </g>
+            <path class="antenna" d="M458 157 L486 89 M483 96 L498 102" />
+            <circle class="antenna-light" cx="488" cy="85" r="7" />
             <path
-              class="face-outline"
-              d="M 257 173 L 302 149 L 399 149 L 443 173 L 471 252 L 457 364 L 414 430 L 350 464 L 286 430 L 243 364 L 229 252 Z"
+              class="ear-block"
+              d="M157 258 H183 V347 H157 Z M521 249 H548 V358 H521 Z"
             />
             <path
-              class="face-detail"
-              d="M 257 173 L 287 223 L 350 242 L 413 223 L 443 173 M 243 364 L 286 341 L 303 383 L 350 407 L 397 383 L 414 341 L 457 364 M 350 242 L 332 319 L 350 331 L 368 319 L 350 242 M 286 430 L 304 412 M 414 430 L 396 412"
+              class="robot-shell"
+              d="M181 194 L227 153 H446 L511 180 L527 386 L480 451 L211 436 L172 389 Z"
+            />
+            <path
+              class="shell-seam"
+              d="M181 194 L211 219 L200 375 L220 407 M511 180 L487 211 L501 373 L477 418 M235 173 H426"
+            />
+            <path class="hazard-tape" d="M231 157 H326 V179 H218 Z" />
+            <path
+              class="visor-frame"
+              d="M214 225 L469 210 L494 243 L480 337 L216 349 L200 316 Z"
+            />
+            <path
+              class="visor-screen"
+              d="M223 238 L461 224 L479 247 L467 325 L226 337 L215 313 Z"
+            />
+            <path
+              fill="url(#visorScan)"
+              d="M223 238 L461 224 L479 247 L467 325 L226 337 L215 313 Z"
             />
             <g class="eyes">
-              <path d="M 259 252 L 315 263 L 306 279 L 268 270 Z" />
-              <path d="M 441 252 L 385 263 L 394 279 L 432 270 Z" />
-            </g>
-            <path class="brow" d="M 250 231 L 310 244 M 390 244 L 450 231" />
-            <g class="voice-mouth">
-              <path d="M 314 370 L 332 363 L 350 367 L 368 363 L 386 370" />
-              <path d="M 322 380 L 350 386 L 378 380" />
-            </g>
-            <g class="scan-lines">
               <path
-                d="M 75 300 L 160 300 M 540 300 L 625 300 M 350 25 L 350 55 M 350 545 L 350 575"
+                class="left-eye"
+                d="M242 272 L320 261 L318 290 L244 298 Z"
               />
-              <circle cx="350" cy="300" r="287" stroke-dasharray="1 449" />
+              <path
+                class="left-eye-cut"
+                d="M274 261 L263 302 M296 261 L285 302"
+              />
+              <circle class="lens-ring" cx="411" cy="278" r="32" />
+              <circle class="lens-iris" cx="411" cy="278" r="15" />
+              <path
+                class="lens-cross"
+                d="M411 238 V248 M411 308 V318 M371 278 H381 M441 278 H451"
+              />
+            </g>
+            <path class="visor-glint" d="M232 242 L350 235 M235 251 L290 248" />
+            <path
+              class="speaker-frame"
+              d="M257 366 L427 358 L444 392 L270 407 Z"
+            />
+            <g class="voice-mouth">
+              <path
+                v-for="n in 11"
+                :key="n"
+                :d="`M ${276 + n * 12} 374 L ${276 + n * 12} ${n % 3 === 0 ? 396 : 390}`"
+                :style="{ '--bar': n }"
+              />
+            </g>
+            <g class="chassis-bolts">
+              <circle
+                v-for="point in [
+                  [199, 204],
+                  [489, 194],
+                  [194, 381],
+                  [481, 391],
+                  [230, 421],
+                ]"
+                :key="point.join('-')"
+                :cx="point[0]"
+                :cy="point[1]"
+                r="6"
+              />
+            </g>
+            <g class="shell-scuffs">
+              <path
+                d="M344 175 L370 171 M350 181 L380 175 M191 361 L196 337 M448 427 L465 423 M452 434 L467 430"
+              />
+            </g>
+            <g class="stencil-labels">
+              <text x="358" y="195">J / R V S</text>
+              <text x="225" y="427" class="small-stencil">
+                LOCAL / OWNER OPERATED
+              </text>
+              <text x="108" y="124" class="small-stencil">
+                WORKSHOP INTELLIGENCE
+              </text>
+            </g>
+            <g class="repair-patch" transform="rotate(-9 490 377)">
+              <rect x="468" y="361" width="44" height="25" />
+              <path d="M477 372 H503 M481 379 H499" />
             </g>
           </svg>
           <span class="face-coordinate coord-left"
