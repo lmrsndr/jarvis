@@ -173,6 +173,10 @@ class PluginInstaller:
             raise PluginInstallError(str(exc)) from exc
 
     def _read_zip(self, package_bytes: bytes, filename: str) -> dict[str, Any]:
+        if Path(filename).name != filename or "/" in filename or "\\" in filename or ":" in filename:
+            raise PluginInstallError("Package filename must be a basename")
+        if len(package_bytes) > 20_000_000:
+            raise PluginInstallError("Package exceeds 20 MB")
         if not filename.endswith(".zip"):
             raise PluginInstallError("Plugin package must be a .zip file.")
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -180,6 +184,8 @@ class PluginInstaller:
             package_path.write_bytes(package_bytes)
             try:
                 with zipfile.ZipFile(package_path) as archive:
+                    if sum(i.file_size for i in archive.infolist()) > 50_000_000:
+                        raise PluginInstallError("Expanded package exceeds 50 MB")
                     names = [name for name in archive.namelist() if not name.endswith("/")]
                     _validate_archive_names(names)
                     schema_name = _find_schema_name(names)
@@ -212,6 +218,11 @@ class PluginInstaller:
 
             if target.parts[:3] == TOOLS_PATH.parts and target.parts[3] != schema.tool_name:
                 raise PluginInstallError("Plugin package may only write inside its own plugin tool folder.")
+            tool_root = TOOLS_PATH / schema.tool_name
+            if tool_root not in target.parents:
+                raise PluginInstallError("Plugin packages may only write inside their own tool directory")
+            if (self.root_dir / tool_root).resolve() not in (self.root_dir / target).resolve().parents:
+                raise PluginInstallError("Target escapes repository")
             file_map[target] = archive.read(name)
         if TOOLS_PATH / schema.tool_name / "tool.schema.json" not in file_map:
             raise PluginInstallError("Plugin package must include tool.schema.json.")

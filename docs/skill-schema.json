@@ -1,0 +1,88 @@
+{
+  "properties": {
+    "id": {
+      "pattern": "^[a-z][a-z0-9_]{1,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 1000,
+      "title": "Description",
+      "type": "string"
+    },
+    "input_schema": {
+      "additionalProperties": true,
+      "title": "Input Schema",
+      "type": "object"
+    },
+    "transport": {
+      "default": "http",
+      "title": "Transport",
+      "type": "string"
+    },
+    "endpoint": {
+      "default": "",
+      "title": "Endpoint",
+      "type": "string"
+    },
+    "command": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Command",
+      "type": "array"
+    },
+    "token_env": {
+      "default": "",
+      "title": "Token Env",
+      "type": "string"
+    },
+    "resources": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Resources",
+      "type": "array"
+    },
+    "risk": {
+      "default": "approval",
+      "title": "Risk",
+      "type": "string"
+    },
+    "idempotent": {
+      "default": false,
+      "title": "Idempotent",
+      "type": "boolean"
+    },
+    "supports_checkpoint": {
+      "default": false,
+      "title": "Supports Checkpoint",
+      "type": "boolean"
+    },
+    "timeout_seconds": {
+      "default": 120,
+      "maximum": 86400,
+      "minimum": 5,
+      "title": "Timeout Seconds",
+      "type": "integer"
+    },
+    "success_schema": {
+      "additionalProperties": true,
+      "title": "Success Schema",
+      "type": "object"
+    }
+  },
+  "required": ["id", "name", "version", "description", "input_schema"],
+  "title": "SkillManifest",
+  "type": "object"
+}

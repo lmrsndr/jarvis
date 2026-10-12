@@ -11,7 +11,7 @@ ExecutionMode = Literal["direct_answer", "grounded_answer", "actuate", "dangerou
 
 class PluginSchema(BaseModel):
     name: str | None = None
-    tool_name: str = Field(min_length=1)
+    tool_name: str = Field(min_length=1, pattern=r"^[A-Za-z0-9_-]+$")
     version: str = Field(min_length=1)
     description: str
     intents: list[str] = Field(default_factory=list)

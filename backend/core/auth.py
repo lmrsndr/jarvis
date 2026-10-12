@@ -27,8 +27,21 @@ def verify_admin_password(password: str | None, settings: Settings, audit_type: 
     if not password or not settings.admin_password_hash:
         write_audit_event(f"{audit_type}.failed", {"reason": "missing_password_or_hash"})
         return False
-    provided_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    valid = secrets.compare_digest(provided_hash, settings.admin_password_hash)
+    expected = settings.admin_password_hash
+    if expected.startswith("pbkdf2:"):
+        try:
+            _, count, salt, expected_digest = expected.split(":")
+            iterations = int(count)
+            if not 100000 <= iterations <= 1000000:
+                return False
+            provided = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), iterations).hex()
+            valid = secrets.compare_digest(provided, expected_digest)
+        except (ValueError, TypeError):
+            return False
+    else:
+        # Preserve existing installs; setup creates stronger hashes for new owners.
+        provided_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+        valid = secrets.compare_digest(provided_hash, expected)
     if not valid:
         write_audit_event(f"{audit_type}.failed", {"reason": "invalid_password"})
     return valid

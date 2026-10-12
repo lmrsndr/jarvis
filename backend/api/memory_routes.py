@@ -119,13 +119,5 @@ def _index_memory(settings: Settings, memory: dict) -> None:
 
 
 def _verify_admin_password(password: str, settings: Settings) -> None:
-    expected_hash = settings.admin_password_hash
-    if not expected_hash:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Memory deletion is disabled until JARVIS_ADMIN_PASSWORD_HASH is set.",
-        )
-
-    provided_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
-    if not secrets.compare_digest(provided_hash, expected_hash):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid admin password.")
+    from core.auth import require_admin_password
+    require_admin_password(password, settings, audit_type="memory_delete")
