@@ -398,3 +398,31 @@ def test_bundlebee_adapter_reads_real_catalogue_shape_without_clicks(monkeypatch
     assert result["changes_applied"] is False
     assert result["findings"][0]["price_verified"] is False
     assert result["findings"][0]["status"] == "reachable"
+
+
+def test_clock_facts_use_london_weekday_and_midnight():
+    from datetime import datetime, timezone
+    from control.agent import clock_facts, direct_clock_reply
+    monday = clock_facts(datetime(2026, 10, 12, 22, 0, tzinfo=timezone.utc))
+    assert monday["weekday"] == "Monday"
+    assert direct_clock_reply("what day is today?", monday) == "Today is Monday, 12 October 2026 (Europe/London)."
+    tuesday = clock_facts(datetime(2026, 10, 12, 23, 30, tzinfo=timezone.utc))
+    assert tuesday["weekday"] == "Tuesday"
+    assert tuesday["date"] == "13 October 2026"
+    assert direct_clock_reply("Render today's match", monday) is None
+
+
+def test_clock_answer_bypasses_model_and_remains_in_conversation(tmp_path, monkeypatch):
+    from control import agent as agent_module
+    store, db = state(tmp_path)
+    scheduler = Scheduler(store, Settings())
+    monkeypatch.setattr(agent_module, "clock_facts", lambda: {
+        "weekday": "Monday", "date": "12 October 2026", "time": "23:00", "timezone": "Europe/London"})
+    async def forbidden(*args, **kwargs):
+        raise AssertionError("Clock answer must not use model inference")
+    monkeypatch.setattr(OllamaProvider, "native_chat", forbidden)
+    result = asyncio.run(Agent(Settings(), store, db, scheduler).chat("what day is today?", "clock-test"))
+    assert result["model"] == "computer-clock"
+    assert "Monday" in result["message"]
+    history = db.get_recent_messages("clock-test", limit=16)
+    assert history[-1]["content"] == result["message"]
