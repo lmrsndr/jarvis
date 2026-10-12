@@ -586,6 +586,39 @@
                 : "Enable “Jarvis” wake listening"
             }}
           </button>
+          <label class="toggle-label"
+            >Voice
+            <select v-model="selectedVoice">
+              <option value="">Automatic (prefer British English)</option>
+              <option
+                v-for="voice in availableVoices"
+                :key="voice.voiceURI"
+                :value="voice.voiceURI"
+              >
+                {{ voice.name }} — {{ voice.lang }}
+              </option>
+            </select>
+          </label>
+          <label class="toggle-label"
+            >Speed {{ Number(voiceRate).toFixed(2) }}
+            <input
+              type="range"
+              v-model.number="voiceRate"
+              min="0.7"
+              max="1.3"
+              step="0.05"
+            />
+          </label>
+          <button
+            @click="speak('Hello Elem. I am Jarvis. Ready when you are.', true)"
+          >
+            Preview voice
+          </button>
+          <p v-if="speechError" role="alert">{{ speechError }}</p>
+          <p>
+            Voices and speech preferences are saved in this browser. Only local
+            voices are used.
+          </p>
           <p>
             Wake listening is experimental: six-second audio clips are sent to
             your local transcription service while this page stays open. Browser
@@ -602,7 +635,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 const state = ref({}),
   draft = ref(""),
   messages = ref([]),
@@ -618,7 +651,11 @@ const state = ref({}),
   memoryId = ref(null),
   knowledgeTitle = ref(""),
   knowledgeContent = ref(""),
-  voiceEnabled = ref(false),
+  voiceEnabled = ref(localStorage.getItem("jarvis-voice-enabled") === "true"),
+  availableVoices = ref([]),
+  selectedVoice = ref(localStorage.getItem("jarvis-voice-uri") || ""),
+  voiceRate = ref(Number(localStorage.getItem("jarvis-voice-rate")) || 0.95),
+  speechError = ref(""),
   speaking = ref(false),
   recording = ref(false),
   wakeEnabled = ref(false),
@@ -733,19 +770,70 @@ async function refresh() {
     pollingBusy = false;
   }
 }
-function speak(text) {
-  if (!voiceEnabled.value || !window.speechSynthesis) return;
-  const local = window.speechSynthesis
-    .getVoices()
-    .filter((v) => v.localService);
-  if (!local.length) return;
-  window.speechSynthesis.cancel();
+function refreshVoices() {
+  availableVoices.value =
+    window.speechSynthesis?.getVoices().filter((v) => v.localService) || [];
+}
+watch(voiceEnabled, (value) => {
+  localStorage.setItem("jarvis-voice-enabled", String(value));
+  if (!value) window.speechSynthesis?.cancel();
+});
+watch(selectedVoice, (value) =>
+  localStorage.setItem("jarvis-voice-uri", value),
+);
+watch(voiceRate, (value) =>
+  localStorage.setItem("jarvis-voice-rate", String(value)),
+);
+let speechRequest = 0;
+async function speak(text, preview = false) {
+  if (!preview && !voiceEnabled.value) return;
+  const synth = window.speechSynthesis;
+  speechError.value = "";
+  if (!synth) {
+    speechError.value =
+      "This browser does not support speech. Open Jarvis in Edge or Chrome.";
+    return;
+  }
+  const request = ++speechRequest;
+  synth.cancel();
+  refreshVoices();
+  // Voices can arrive asynchronously after the first page load.
+  for (
+    let attempt = 0;
+    !availableVoices.value.length && attempt < 20;
+    attempt++
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    if (
+      disposed ||
+      request !== speechRequest ||
+      (!preview && !voiceEnabled.value)
+    )
+      return;
+    refreshVoices();
+  }
+  if (!availableVoices.value.length) {
+    speechError.value =
+      "No local speech voices are available. Install an English speech voice in Windows, then reopen this browser.";
+    return;
+  }
+  const voices = availableVoices.value;
   const u = new SpeechSynthesisUtterance(text);
-  u.voice = local.find((v) => v.lang.startsWith("en")) || local[0];
-  u.rate = 0.95;
+  u.voice =
+    voices.find((v) => v.voiceURI === selectedVoice.value) ||
+    voices.find((v) => v.lang.toLowerCase() === "en-gb") ||
+    voices.find((v) => v.lang.startsWith("en")) ||
+    voices[0];
+  u.rate = Number(voiceRate.value);
+  u.volume = 1;
   u.onstart = () => (speaking.value = true);
-  u.onend = u.onerror = () => (speaking.value = false);
-  window.speechSynthesis.speak(u);
+  u.onend = () => (speaking.value = false);
+  u.onerror = (event) => {
+    speaking.value = false;
+    if (!["canceled", "interrupted"].includes(event.error))
+      speechError.value = `Speech failed: ${event.error}. Check the browser output in Windows Volume mixer.`;
+  };
+  synth.speak(u);
 }
 async function send() {
   const text = draft.value.trim();
@@ -978,6 +1066,8 @@ async function wakeCycle() {
   }
 }
 onMounted(async () => {
+  refreshVoices();
+  window.speechSynthesis?.addEventListener("voiceschanged", refreshVoices);
   refresh();
   polling = setInterval(refresh, 4000);
   ticking = setInterval(
@@ -993,6 +1083,8 @@ onMounted(async () => {
 });
 onUnmounted(() => {
   disposed = true;
+  speechRequest++;
+  window.speechSynthesis?.removeEventListener("voiceschanged", refreshVoices);
   clearInterval(polling);
   clearInterval(ticking);
   wakeEnabled.value = false;
