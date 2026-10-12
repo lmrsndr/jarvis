@@ -619,6 +619,19 @@
             Voices and speech preferences are saved in this browser. Only local
             voices are used.
           </p>
+          <label class="toggle-label"
+            >Follow-up window
+            <select v-model.number="followUpSeconds">
+              <option :value="0">Require Jarvis for every command</option>
+              <option :value="30">30 seconds</option>
+              <option :value="45">45 seconds</option>
+              <option :value="90">90 seconds</option>
+            </select>
+          </label>
+          <p>
+            During this window after a reply, speech is treated as a follow-up
+            without saying Jarvis again. Say “stop listening” to end listening.
+          </p>
           <p>
             Wake listening is experimental: six-second audio clips are sent to
             your local transcription service while this page stays open. Browser
@@ -656,6 +669,9 @@ const state = ref({}),
   voiceRate = ref(Number(localStorage.getItem("jarvis-voice-rate")) || 0.95),
   speechError = ref(""),
   speaking = ref(false),
+  followUpSeconds = ref(
+    Number(localStorage.getItem("jarvis-follow-up-seconds") ?? 45),
+  ),
   recording = ref(false),
   wakeEnabled = ref(false),
   lastHeard = ref(""),
@@ -786,7 +802,15 @@ watch(selectedVoice, (value) =>
 watch(voiceRate, (value) =>
   localStorage.setItem("jarvis-voice-rate", String(value)),
 );
+watch(followUpSeconds, (value) =>
+  localStorage.setItem("jarvis-follow-up-seconds", String(value)),
+);
+function armFollowUp() {
+  if (wakeEnabled.value && followUpSeconds.value > 0)
+    wakeArmedUntil = Date.now() + followUpSeconds.value * 1000;
+}
 let speechRequest = 0;
+let activeUtterance;
 async function speak(text, preview = false) {
   if (!preview && !voiceEnabled.value) return;
   const synth = window.speechSynthesis;
@@ -798,6 +822,7 @@ async function speak(text, preview = false) {
   }
   const request = ++speechRequest;
   synth.cancel();
+  speaking.value = true;
   refreshVoices();
   // Voices can arrive asynchronously after the first page load.
   for (
@@ -810,32 +835,55 @@ async function speak(text, preview = false) {
       disposed ||
       request !== speechRequest ||
       (!preview && !voiceEnabled.value)
-    )
+    ) {
+      if (request === speechRequest) speaking.value = false;
       return;
+    }
     refreshVoices();
   }
   if (!availableVoices.value.length) {
+    speaking.value = false;
+    armFollowUp();
     speechError.value =
       "No local speech voices are available. Install an English speech voice in Windows, then reopen this browser.";
     return;
   }
   const voices = availableVoices.value;
-  const u = new SpeechSynthesisUtterance(text);
-  u.voice =
+  const voice =
     voices.find((v) => v.voiceURI === selectedVoice.value) ||
     voices.find((v) => v.lang.toLowerCase() === "en-gb") ||
     voices.find((v) => v.lang.startsWith("en")) ||
     voices[0];
-  u.rate = Number(voiceRate.value);
-  u.volume = 1;
-  u.onstart = () => (speaking.value = true);
-  u.onend = () => (speaking.value = false);
-  u.onerror = (event) => {
-    speaking.value = false;
-    if (!["canceled", "interrupted"].includes(event.error))
-      speechError.value = `Speech failed: ${event.error}. Check the browser output in Windows Volume mixer.`;
-  };
-  synth.speak(u);
+  // Short utterances avoid browsers truncating long spoken responses.
+  const clean = text
+    .replace(/```[\s\S]*?```/g, " Code is shown on screen. ")
+    .replace(/[*#`]/g, "");
+  const parts = clean.match(/.{1,180}(?:\s|$)|\S{1,180}/g) || [];
+  function next() {
+    if (disposed || request !== speechRequest) return;
+    const part = parts.shift();
+    if (!part) {
+      speaking.value = false;
+      activeUtterance = null;
+      if (!preview) armFollowUp();
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(part.trim());
+    activeUtterance = u;
+    u.voice = voice;
+    u.rate = Number(voiceRate.value);
+    u.volume = 1;
+    u.onend = next;
+    u.onerror = (event) => {
+      if (request !== speechRequest) return;
+      speaking.value = false;
+      activeUtterance = null;
+      if (!["canceled", "interrupted"].includes(event.error))
+        speechError.value = `Speech failed: ${event.error}. Check Windows Volume mixer.`;
+    };
+    synth.speak(u);
+  }
+  next();
 }
 async function send() {
   const text = draft.value.trim();
@@ -853,7 +901,8 @@ async function send() {
     conversationId.value = d.conversation_id;
     localStorage.setItem("jarvis-conversation", d.conversation_id);
     messages.value.push({ role: "assistant", content: d.message });
-    speak(d.message);
+    if (voiceEnabled.value) speak(d.message);
+    else armFollowUp();
   } catch (e) {
     error.value = e.message;
     messages.value.push({
@@ -1066,11 +1115,17 @@ async function wakeCycle() {
         if (!wakeEnabled.value || disposed) return;
         const text = (d.text || "").trim();
         lastHeard.value = text || "[No speech detected]";
+        if (/^(?:jarvis[, ]+)?stop listening[.!]?$/i.test(text)) {
+          wakeEnabled.value = false;
+          wakeArmedUntil = 0;
+          listenerStatus.value = "Off";
+          return;
+        }
         const match = text.match(/\bjarvis\b[,:]?\s*(.*)/i);
         let command = "";
         if (match) {
           command = match[1].trim();
-          if (!command) wakeArmedUntil = Date.now() + 15000;
+          if (!command) wakeArmedUntil = Date.now() + 30000;
         } else if (Date.now() < wakeArmedUntil) command = text;
         if (command && !busy.value && !speaking.value) {
           wakeArmedUntil = 0;
@@ -1087,7 +1142,7 @@ async function wakeCycle() {
     };
     listenerStatus.value =
       Date.now() < wakeArmedUntil
-        ? "Jarvis heard — say your command now"
+        ? "Listening for your command or follow-up"
         : "Listening for Jarvis";
     r.start();
     wakeTimer = setTimeout(() => {
