@@ -1,0 +1,19 @@
+Implement the complete approved Jarvis programme in this local Windows checkout.
+
+Read AGENTS.md, docs/APPROVED-ROADMAP.md and docs/IMPLEMENTATION.md first. The owner has approved all ten stages for local implementation and testing; do not ask again for routine reversible coding choices.
+
+Inspect git status and preserve existing changes. Create/use a separate local branch codex/jarvis-local-worker. Do not reset, delete, discard user work, or change main. Proceed in stage order, continuing independent stages when an external integration is blocked. Make meaningful, small stage checkpoints.
+
+The current system has a Vue dashboard, SQLite control store, native Ollama tool loop, queued skills/scheduling, browser TTS, chunk-based experimental wake listening, and a read-only Bundlebee adapter. They are foundations, not a fully accepted autonomous assistant. Keep the garage-punk robot GUI and its 4K layout.
+
+For each stage implement, run relevant tests, inspect actual outputs, then record evidence in docs/LOCAL-WORKER-REPORT.md. Use a table of stage/status/changes/tests/blockers. Explicitly distinguish implemented, automated-tested, simulated, physically-tested, and blocked. Record commands, durations, failures and remaining manual steps without secrets.
+
+Do not claim microphone/speaker perception from mocked tests. Don't treat an LLM's statement as execution evidence. No paid services or cloud runtime inference fallback. Research current primary documentation and licences for local wake/STT/TTS components before choosing them.
+
+Owner profile must be inspectable, editable and imported explicitly; its selected seed facts are in the roadmap. Do not put personal details in public reports or hardcode them into personality instructions. No secrets in commits or reports.
+
+Do not send real emails, publish products, click affiliate tracking links, modify live Studio jobs, or touch unrelated school apps. Use synthetic fixtures and separate databases. Integration blockers do not justify inventing services.
+
+Stop and report if a destructive operation or unapproved external action becomes necessary. Otherwise persist through all feasible approved work. End with a comprehensive report, exact update/start/test commands and Windows live acceptance checklist. Commit reviewable local changes where permitted. Do not push or merge automatically; GitHub synchronisation of results requires configured credentials and owner-authorised publication.
+
+This is a one-time handoff. You do not automatically share the cloud conversation or receive subsequent cloud messages. The repository documents are the authoritative shared task context.
