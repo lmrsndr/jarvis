@@ -625,9 +625,8 @@
             sleep, TV microphones and split phrases can affect detection.
             Requires the optional voice package.
           </p>
-          <p>
-            Active microphone: {{ recording || wakeEnabled ? "yes" : "no" }}
-          </p>
+          <p>Listener: {{ listenerStatus }}</p>
+          <p>Last heard: {{ lastHeard || "Nothing transcribed yet" }}</p>
         </section>
       </section>
     </div>
@@ -659,6 +658,8 @@ const state = ref({}),
   speaking = ref(false),
   recording = ref(false),
   wakeEnabled = ref(false),
+  lastHeard = ref(""),
+  listenerStatus = ref("Off"),
   connectionLabel = ref("CONNECTING");
 let polling,
   ticking,
@@ -666,6 +667,7 @@ let polling,
   stream,
   chunks = [],
   wakeTimer,
+  wakeArmedUntil = 0,
   pollingBusy = false,
   disposed = false;
 const conversationId = ref(localStorage.getItem("jarvis-conversation"));
@@ -967,7 +969,13 @@ async function toggleMic() {
     return;
   }
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
     chunks = [];
     recorder = new MediaRecorder(stream);
     recorder.ondataavailable = (e) => {
@@ -1007,6 +1015,8 @@ async function toggleMic() {
 async function toggleWake() {
   if (wakeEnabled.value) {
     wakeEnabled.value = false;
+    wakeArmedUntil = 0;
+    listenerStatus.value = "Off";
     stopMic();
     return;
   }
@@ -1020,11 +1030,18 @@ async function toggleWake() {
 async function wakeCycle() {
   if (!wakeEnabled.value || disposed) return;
   if (busy.value || speaking.value) {
+    listenerStatus.value = "Waiting while Jarvis is busy or speaking";
     wakeTimer = setTimeout(wakeCycle, 1000);
     return;
   }
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
     const currentStream = stream;
     const r = new MediaRecorder(currentStream);
     recorder = r;
@@ -1035,6 +1052,7 @@ async function wakeCycle() {
     r.onstop = async () => {
       currentStream.getTracks().forEach((t) => t.stop());
       if (!wakeEnabled.value || disposed) return;
+      listenerStatus.value = "Transcribing recording";
       const form = new FormData();
       form.append("file", new Blob(parts, { type: r.mimeType }), "audio.webm");
       try {
@@ -1045,17 +1063,32 @@ async function wakeCycle() {
         });
         const d = await response.json();
         if (!response.ok) throw new Error(d.detail);
-        const match = d.text.match(/\bjarvis\b[,:]?\s*(.*)/i);
-        if (match?.[1] && !busy.value && !speaking.value) {
-          draft.value = match[1];
+        if (!wakeEnabled.value || disposed) return;
+        const text = (d.text || "").trim();
+        lastHeard.value = text || "[No speech detected]";
+        const match = text.match(/\bjarvis\b[,:]?\s*(.*)/i);
+        let command = "";
+        if (match) {
+          command = match[1].trim();
+          if (!command) wakeArmedUntil = Date.now() + 15000;
+        } else if (Date.now() < wakeArmedUntil) command = text;
+        if (command && !busy.value && !speaking.value) {
+          wakeArmedUntil = 0;
+          draft.value = command;
+          listenerStatus.value = "Sending command";
           await send();
         }
       } catch (e) {
         error.value = e.message;
         wakeEnabled.value = false;
+        listenerStatus.value = "Failed: " + e.message;
       }
       if (wakeEnabled.value) wakeTimer = setTimeout(wakeCycle, 500);
     };
+    listenerStatus.value =
+      Date.now() < wakeArmedUntil
+        ? "Jarvis heard — say your command now"
+        : "Listening for Jarvis";
     r.start();
     wakeTimer = setTimeout(() => {
       if (r.state === "recording") r.stop();
