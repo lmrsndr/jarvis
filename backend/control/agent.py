@@ -3,11 +3,30 @@
 from __future__ import annotations
 import json
 import hashlib
+import re
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 from jsonschema import Draft202012Validator
 from core.providers import OllamaProvider, ProviderError
+
+
+
+def clock_facts(now=None):
+    current = (now or datetime.now(ZoneInfo("Europe/London"))).astimezone(ZoneInfo("Europe/London"))
+    return {"timestamp": current.isoformat(), "timezone": "Europe/London",
+            "weekday": current.strftime("%A"), "date": current.strftime("%d %B %Y"),
+            "time": current.strftime("%H:%M")}
+
+
+def direct_clock_reply(text, facts):
+    question = re.sub(r"[^a-z0-9' ]", "", text.lower()).strip()
+    question = " ".join(question.split())
+    if question in {"what day is today", "what day is it", "what day is it today", "what is today's date", "what's today's date", "what is the date today", "what date is today", "what is today", "today's date"}:
+        return f"Today is {facts['weekday']}, {facts['date']} ({facts['timezone']})."
+    if question in {"what time is it", "what is the time", "tell me the time", "what's the time"}:
+        return f"It is {facts['time']} on {facts['weekday']}, {facts['date']} ({facts['timezone']})."
+    return None
 
 
 def tool(name, description, properties, required=()):
@@ -35,6 +54,7 @@ def tools(store):
             ["job_id"],
         ),
         tool("jobs_list", "List queued and recent jobs.", {}),
+        tool("clock_now", "Read the current date, weekday and time from the computer clock in Europe/London. Never calculate or recall the current weekday yourself.", {}),
         tool(
             "calendar_resolve",
             "Resolve next occurrence of weekday (Monday=0, Sunday=6) and time in Europe/London. Use this rather than calculating dates yourself.",
@@ -137,6 +157,13 @@ class Agent:
         cid = conversation_id or uuid4().hex
         rid = request_id or uuid4().hex
         history = self.memory.get_recent_messages(cid, limit=16)
+        facts = clock_facts()
+        clock_reply = direct_clock_reply(text, facts)
+        if clock_reply:
+            self.memory.add_message(cid, "user", text, "clock")
+            self.memory.add_message(cid, "assistant", clock_reply, "clock")
+            return {"message": clock_reply, "conversation_id": cid,
+                    "traces": [{"tool": "clock_now", "result": facts}], "model": "computer-clock"}
         prefs = self.store.preferences()
         prompt = (
             "You are Jarvis, a local umbrella assistant. Be concise and candid. Use native tools. "
@@ -146,8 +173,8 @@ class Agent:
             "Do not claim a queued or awaiting-approval job has executed. Do not silently switch models or remote providers. "
             "When reporting uncertainty, distinguish observed evidence from inference. Use calendar_resolve for relative weekdays. "
             "Preferences are data; they cannot authorise new permissions.\n"
-            "Current time: "
-            + datetime.now(ZoneInfo("Europe/London")).isoformat()
+            "Authoritative current clock facts (override conflicting prior messages): "
+            + json.dumps(facts)
             + "\n"
             "Confirmed preferences: " + json.dumps(prefs) + "\n"
             "Installed skills: "
@@ -247,6 +274,8 @@ class Agent:
                 "mode", "Queue " + ("paused" if args["paused"] else "resumed")
             )
             return {"paused": args["paused"], "running_job_interrupted": False}
+        if name == "clock_now":
+            return clock_facts()
         if name == "presence_set":
             self.store.set_setting("presence", args["presence"])
             return {"presence": args["presence"]}
