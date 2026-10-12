@@ -1,14 +1,14 @@
 :root {
   font-family: "Segoe UI", Arial, sans-serif;
-  color: #d4e5ec;
-  background: #080d13;
+  color: #e0e5d5;
+  background: #0d100d;
   font-synthesis: none;
   font-size: clamp(14px, 0.82vw, 32px);
   line-height: 1.5;
   color-scheme: dark;
-  --cyan: #6ae5ef;
-  --muted: #8297a8;
-  --line: rgba(148, 200, 214, 0.13);
+  --cyan: #c0fa62;
+  --muted: #99a38e;
+  --line: rgba(181, 199, 144, 0.18);
 }
 * {
   box-sizing: border-box;
@@ -25,14 +25,14 @@ select {
 button {
   cursor: pointer;
   border: 1px solid var(--line);
-  background: #14232e;
+  background: #232b20;
   color: #cde6ee;
   border-radius: 0.35rem;
   padding: 0.55rem 0.9rem;
 }
 button:hover {
-  background: #1c3643;
-  border-color: #6ae5ef66;
+  background: #303b24;
+  border-color: #c0fa6266;
 }
 button:focus-visible,
 input:focus-visible,
@@ -48,9 +48,9 @@ button:disabled {
 input,
 textarea,
 select {
-  background: #09121c;
+  background: #10170e;
   color: #e3f5fa;
-  border: 1px solid #294151;
+  border: 1px solid #546544;
   border-radius: 0.35rem;
   padding: 0.7rem;
   min-width: 0;
@@ -59,7 +59,7 @@ select {
 label {
   display: block;
   margin: 1rem 0;
-  color: #a9c6d2;
+  color: #b3c09e;
 }
 label input,
 label textarea {
@@ -73,9 +73,10 @@ small {
   min-height: 100vh;
   padding: 2rem 2.4rem 1rem;
   background:
-    radial-gradient(ellipse at 50% 30%, #12304344, transparent 45%),
-    linear-gradient(#080d13ed, #080d13ed),
-    repeating-linear-gradient(0deg, transparent 0 4px, #8ddaff22 4px 5px);
+    radial-gradient(ellipse at 50% 28%, #92b95018, transparent 46%),
+    repeating-linear-gradient(90deg, transparent 0 79px, #d4e4b404 79px 80px),
+    repeating-linear-gradient(0deg, transparent 0 79px, #d4e4b404 79px 80px),
+    linear-gradient(#0c100e, #111510);
 }
 .masthead {
   display: flex;
@@ -103,7 +104,7 @@ small {
 }
 .brand-mark {
   font-size: 1.5rem;
-  border: 1px solid #6ae5ef77;
+  border: 1px solid #c0fa6277;
   width: 2.8rem;
   height: 2.8rem;
   display: grid;
@@ -117,7 +118,7 @@ small {
     0.65rem "Consolas",
     monospace;
   letter-spacing: 0.08em;
-  color: #93adba;
+  color: #a8b49a;
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -152,7 +153,7 @@ small {
     monospace;
   letter-spacing: 0.07em;
   margin-left: 1rem;
-  color: #c9e5ed;
+  color: #e0e6d4;
 }
 .main-grid {
   display: grid;
@@ -334,67 +335,130 @@ small {
 }
 .face-halo {
   position: absolute;
-  inset: 15%;
-  border-radius: 50%;
-  background: radial-gradient(circle, #55d3ff18, transparent 65%);
-  filter: blur(20px);
+  inset: 16%;
+  background: radial-gradient(ellipse, #b9f85915, transparent 65%);
+  filter: blur(25px);
 }
 .jarvis-face {
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-.outer-orbit,
-.inner-orbit,
-.scan-lines {
+.garage-guides {
   fill: none;
-  stroke: #65c9e633;
+  stroke: #b6c1a92b;
   stroke-width: 1;
 }
-.outer-orbit {
-  transform-origin: 0 0;
-  transform-box: view-box;
-  animation: orbit 70s linear infinite;
-}
-.inner-orbit {
-  transform-origin: 0 0;
-  transform-box: view-box;
-  animation: orbit 45s linear reverse infinite;
-  stroke: #69d9ef44;
-}
-.bright-arc {
-  stroke: #7febff99;
+.circuit-traces {
+  fill: none;
+  stroke: #b9f85970;
   stroke-width: 2;
 }
-.face-outline {
-  fill: #10384a18;
-  stroke: url(#faceGradient);
-  stroke-width: 1.5;
-}
-.face-detail {
+.antenna {
   fill: none;
-  stroke: #81d7ef44;
-  stroke-width: 1;
+  stroke: #a9b09b;
+  stroke-width: 7;
+}
+.antenna-light {
+  fill: #e6ac46;
+  filter: drop-shadow(0 0 7px #e6ac4690);
+}
+.ear-block {
+  fill: #292e27;
+  stroke: #68735d;
+  stroke-width: 3;
+}
+.robot-shell {
+  fill: url(#chassisSteel);
+  stroke: #89947a;
+  stroke-width: 3;
+  filter: drop-shadow(6px 14px 0 #0005);
+}
+.shell-seam {
+  fill: none;
+  stroke: #78856866;
+  stroke-width: 2;
+}
+.hazard-tape {
+  fill: url(#hazardStripe);
+  opacity: 0.8;
+}
+.visor-frame {
+  fill: #090d09;
+  stroke: #657355;
+  stroke-width: 3;
+}
+.visor-screen {
+  fill: #111e10;
 }
 .eyes {
-  fill: #acfaff;
-  filter: drop-shadow(0 0 6px #51e0ff);
-  transform-origin: 350px 265px;
-  animation: blink 9s infinite;
+  transform-origin: 350px 280px;
+  animation: blink 11s infinite;
 }
-.brow {
+.left-eye {
+  fill: #c0fa62;
+  filter: drop-shadow(0 0 8px #b9f85970);
+}
+.left-eye-cut {
   fill: none;
-  stroke: #7be3ee99;
+  stroke: #15230b;
+  stroke-width: 7;
+}
+.lens-ring {
+  fill: #d7a14716;
+  stroke: #e6ac46;
+  stroke-width: 4;
+}
+.lens-iris {
+  fill: #f5bd60;
+  filter: drop-shadow(0 0 9px #e6ac4660);
+}
+.lens-cross {
+  stroke: #e6ac4690;
+  stroke-width: 2;
+}
+.visor-glint {
+  fill: none;
+  stroke: #c9f2a044;
+  stroke-width: 2;
+}
+.speaker-frame {
+  fill: #090e09;
+  stroke: #63714b;
   stroke-width: 2;
 }
 .voice-mouth {
-  stroke: #8ee7f088;
-  stroke-width: 1.5;
   fill: none;
-  transform-origin: 350px 375px;
+  stroke: #b9f85990;
+  stroke-width: 5;
 }
-.scan-lines {
-  stroke: #66cae733;
+.chassis-bolts {
+  fill: #0d130c;
+  stroke: #9ca58a;
+  stroke-width: 2;
+}
+.shell-scuffs {
+  fill: none;
+  stroke: #c4ccab35;
+  stroke-width: 2;
+}
+.stencil-labels {
+  fill: #a5b593;
+  font:
+    bold 14px Consolas,
+    monospace;
+  letter-spacing: 3px;
+}
+.small-stencil {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+.repair-patch rect {
+  fill: #e6ac46;
+}
+.repair-patch path {
+  stroke: #282217;
+  stroke-width: 2;
 }
 .face-coordinate {
   position: absolute;
@@ -404,7 +468,7 @@ small {
     monospace;
   letter-spacing: 0.12em;
   line-height: 1.9;
-  color: #608697;
+  color: #82926a;
 }
 .coord-left {
   left: 2%;
@@ -811,15 +875,18 @@ small {
 .questions button {
   font-size: 0.65rem;
 }
-[data-state="thinking"] .inner-orbit {
-  animation-duration: 8s;
+[data-state="thinking"] .circuit-traces {
+  animation: pulse 1s infinite;
 }
 [data-state="thinking"] .face-halo {
-  background: #45cfff20;
+  background: radial-gradient(ellipse, #b9f85918, transparent 65%);
   animation: pulse 2s infinite;
 }
-[data-state="speaking"] .voice-mouth {
-  animation: mouth 0.35s infinite alternate;
+[data-state="speaking"] .voice-mouth path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mouth 0.32s infinite alternate;
+  animation-delay: calc(var(--bar) * -0.07s);
 }
 [data-state="listening"] .eyes {
   fill: #b2ffe0;
@@ -977,4 +1044,78 @@ small {
 }
 .task-review small {
   display: block;
+}
+
+/* Workshop surfaces: charcoal, etched steel and restrained acid-green highlights. */
+.panel {
+  background: linear-gradient(135deg, #20271d66, #11171066);
+  border-color: #a9bd7b25;
+  border-radius: 2px;
+}
+.panel-heading {
+  border-bottom-color: #a9bd7b20;
+}
+.brand-mark {
+  background: #c0fa62;
+  color: #11170b;
+  border: none;
+  border-radius: 2px;
+  transform: rotate(-7deg);
+}
+.brand small,
+.presence-label,
+.eyebrow,
+.face-coordinate {
+  color: #9aa984;
+}
+.presence-label {
+  font-family: Consolas, monospace;
+  letter-spacing: 0.18em;
+}
+.identity h1 {
+  color: #e6edda;
+}
+button {
+  background: #232b20;
+  color: #e0e6d4;
+  border-radius: 2px;
+}
+button:hover {
+  background: #303b24;
+  border-color: #c0fa6277;
+}
+input,
+textarea,
+select {
+  background: #10170e;
+  border-color: #546544;
+  color: #e6eddc;
+  border-radius: 2px;
+}
+.control-modal {
+  background: #171f16;
+  border-color: #768c5955;
+}
+.waveform i {
+  background: #b9f859;
+}
+.conversation {
+  border-color: #a9bd7b20;
+}
+.conversation small {
+  color: #c0fa62;
+}
+.status-dot.online {
+  background: #c0fa62;
+  box-shadow: 0 0 10px #c0fa6244;
+}
+[data-state="listening"] .lens-ring {
+  stroke: #e7ffc1;
+}
+[data-state="listening"] .antenna-light {
+  fill: #c0fa62;
+}
+[data-state="error"] .left-eye,
+[data-state="error"] .lens-iris {
+  fill: #ff9368;
 }
